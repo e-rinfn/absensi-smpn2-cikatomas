@@ -1,6 +1,4 @@
 <?php
-// Base URL (untuk link ke CSS, JS, dsb.)
-$base_url = '/absensi-smpn2-cikatomas/';
+require_once __DIR__ . '/functions.php';
 
-// Base Path (path absolut server, untuk include file PHP)
-$base_path = $_SERVER['DOCUMENT_ROOT'] . '/absensi-smpn2-cikatomas/';
+$base_url = $_ENV['BASE_URL'];

@@ -1,20 +1,24 @@
-                <!-- Konten utama akan dimasukkan di sini -->
-                </main>
-                </div>
-                </div>
+<?php
+require_once __DIR__ . '/functions.php';
+?>
 
-                <!-- Bootstrap JS Bundle with Popper -->
-                <script src="../assets/js/bootstrap.bundle.min.js"></script>
+<!-- Konten utama akan dimasukkan di sini -->
+</main>
+</div>
+</div>
 
-                <!-- Custom JS -->
-                <script src="../assets/js/script.js"></script>
+<!-- Bootstrap JS Bundle with Popper -->
+<script src="<?= $base_url ?>assets/js/bootstrap.bundle.min.js"></script>
 
-                <!-- Inline JS untuk halaman tertentu -->
-                <?php if (isset($inline_js)): ?>
-                    <script>
-                        <?= $inline_js ?>
-                    </script>
-                <?php endif; ?>
-                </body>
+<!-- Custom JS -->
+<script src="<?= $base_url ?>assets/js/script.js"></script>
 
-                </html>
+<!-- Inline JS untuk halaman tertentu -->
+<?php if (isset($inline_js)): ?>
+    <script>
+        <?= $inline_js ?>
+    </script>
+<?php endif; ?>
+</body>
+
+</html>
