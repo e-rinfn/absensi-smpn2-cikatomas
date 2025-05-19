@@ -115,6 +115,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <?php endif; ?>
 
                     <form method="POST">
+                        <div class="card-header bg-warning">
+                            <h5 class="mb-0">Form Edit Data Kelas</h5>
+                        </div>
                         <div class="card">
                             <div class="card-body">
                                 <div class="mb-3">
