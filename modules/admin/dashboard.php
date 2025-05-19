@@ -13,6 +13,7 @@ $total_guru = $pdo->query("SELECT COUNT(*) FROM users WHERE role = 'guru'")->fet
 $total_mapel = $pdo->query("SELECT COUNT(*) FROM mata_pelajaran")->fetchColumn();
 
 // Query untuk absensi hari ini
+date_default_timezone_set('Asia/Jakarta');
 $today = date('Y-m-d');
 $absensi_hari_ini = $pdo->query("
     SELECT COUNT(*) as total, 
@@ -66,53 +67,54 @@ $aktivitas_terbaru = $pdo->query("
                     <!-- Info Boxes -->
                     <div class="row mb-4">
                         <div class="col-md-3">
-                            <div class="card bg-primary text-white">
+                            <div class="card border-start border-4 border-danger shadow-sm">
                                 <div class="card-body">
-                                    <h5 class="card-title">Total Kelas</h5>
+                                    <h5 class="card-title text-muted">Total Kelas</h5>
                                     <h2 class="card-text"><?= $total_kelas ?></h2>
-                                    <a href="kelas/" class="text-white">Lihat detail <i class="fas fa-arrow-right"></i></a>
+                                    <a href="kelas/" class="text-decoration-none">Lihat detail <i class="fas fa-arrow-right"></i></a>
                                 </div>
                             </div>
                         </div>
 
                         <div class="col-md-3">
-                            <div class="card bg-success text-white">
+                            <div class="card border-start border-4 border-success shadow-sm">
                                 <div class="card-body">
-                                    <h5 class="card-title">Total Murid</h5>
+                                    <h5 class="card-title text-muted">Total Murid</h5>
                                     <h2 class="card-text"><?= $total_murid ?></h2>
-                                    <a href="murid/" class="text-white">Lihat detail <i class="fas fa-arrow-right"></i></a>
+                                    <a href="murid/" class="text-decoration-none">Lihat detail <i class="fas fa-arrow-right"></i></a>
                                 </div>
                             </div>
                         </div>
 
                         <div class="col-md-3">
-                            <div class="card bg-info text-white">
+                            <div class="card border-start border-4 border-info shadow-sm">
                                 <div class="card-body">
-                                    <h5 class="card-title">Total Guru</h5>
+                                    <h5 class="card-title text-muted">Total Guru</h5>
                                     <h2 class="card-text"><?= $total_guru ?></h2>
-                                    <a href="user/?role=guru" class="text-white">Lihat detail <i class="fas fa-arrow-right"></i></a>
+                                    <a href="user/?role=guru" class="text-decoration-none">Lihat detail <i class="fas fa-arrow-right"></i></a>
                                 </div>
                             </div>
                         </div>
 
                         <div class="col-md-3">
-                            <div class="card bg-warning text-dark">
+                            <div class="card border-start border-4 border-warning shadow-sm">
                                 <div class="card-body">
-                                    <h5 class="card-title">Total Mapel</h5>
+                                    <h5 class="card-title text-muted">Total Mapel</h5>
                                     <h2 class="card-text"><?= $total_mapel ?></h2>
-                                    <a href="mapel/" class="text-dark">Lihat detail <i class="fas fa-arrow-right"></i></a>
+                                    <a href="mapel/" class="text-decoration-none">Lihat detail <i class="fas fa-arrow-right"></i></a>
                                 </div>
                             </div>
                         </div>
                     </div>
+
 
                     <!-- Row 2 -->
                     <div class="row">
                         <!-- Absensi Hari Ini -->
                         <div class="col-md-6">
                             <div class="card">
-                                <div class="card-header bg-secondary text-white">
-                                    <h5 class="mb-0">Absensi Hari Ini (<?= date('d/m/Y') ?>)</h5>
+                                <div class="card-header bg-warning text-white">
+                                    <h5 class="mb-0">Absensi Hari Ini (<?= date('d/m/Y H:i') ?> WIB)</h5>
                                 </div>
                                 <div class="card-body">
                                     <?php if ($absensi_hari_ini['total'] > 0): ?>
@@ -127,7 +129,7 @@ $aktivitas_terbaru = $pdo->query("
                                                 Alpha: <?= $absensi_hari_ini['alpha'] ?></p>
                                         </div>
                                     <?php else: ?>
-                                        <p class="text-muted">Belum ada data absensi hari ini.</p>
+                                        <p class="text-muted mt-3">Belum ada data absensi hari ini.</p>
                                     <?php endif; ?>
                                 </div>
                             </div>
@@ -136,12 +138,13 @@ $aktivitas_terbaru = $pdo->query("
                         <!-- Aktivitas Terbaru -->
                         <div class="col-md-6">
                             <div class="card">
-                                <div class="card-header bg-secondary text-white">
+                                <div class="card-header bg-warning text-white">
                                     <h5 class="mb-0">Aktivitas Terbaru</h5>
                                 </div>
-                                <div class="card-body">
+                                <hr class="my-0">
+                                <div class="card-body mt-3">
                                     <?php if (count($aktivitas_terbaru) > 0): ?>
-                                        <div class="list-group">
+                                        <div class="list-group" style="max-height: 400px; overflow-y: auto;">
                                             <?php foreach ($aktivitas_terbaru as $aktivitas): ?>
                                                 <div class="list-group-item">
                                                     <div class="d-flex justify-content-between">
@@ -150,10 +153,10 @@ $aktivitas_terbaru = $pdo->query("
                                                     </div>
                                                     <p class="mb-1">
                                                         <span class="badge 
-                                            <?= $aktivitas['status'] == 'hadir' ? 'bg-success' : '' ?>
-                                            <?= $aktivitas['status'] == 'sakit' ? 'bg-info' : '' ?>
-                                            <?= $aktivitas['status'] == 'izin' ? 'bg-warning' : '' ?>
-                                            <?= $aktivitas['status'] == 'alpha' ? 'bg-danger' : '' ?>">
+                                    <?= $aktivitas['status'] == 'hadir' ? 'bg-success' : '' ?>
+                                    <?= $aktivitas['status'] == 'sakit' ? 'bg-info' : '' ?>
+                                    <?= $aktivitas['status'] == 'izin' ? 'bg-warning' : '' ?>
+                                    <?= $aktivitas['status'] == 'alpha' ? 'bg-danger' : '' ?>">
                                                             <?= ucfirst($aktivitas['status']) ?>
                                                         </span>
                                                         pada <?= $aktivitas['nama_mapel'] ?>
@@ -164,13 +167,13 @@ $aktivitas_terbaru = $pdo->query("
                                                 </div>
                                             <?php endforeach; ?>
                                         </div>
-                                        <a href="../guru/absensi/" class="btn btn-sm btn-primary mt-3">Lihat Semua</a>
                                     <?php else: ?>
                                         <p class="text-muted">Belum ada aktivitas terbaru.</p>
                                     <?php endif; ?>
                                 </div>
                             </div>
                         </div>
+
                     </div>
 
                     <!-- Quick Actions -->

@@ -94,12 +94,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <?php endif; ?>
 
                     <form method="POST">
-                        <div class="card-header bg-warning">
-                            <h5 class="mb-0">Form Tambah Kelas</h5>
-                        </div>
                         <div class="card">
+                            <div class="card-header bg-warning">
+                                <h5 class="mb-0">Form Tambah Kelas</h5>
+                            </div>
                             <div class="card-body">
-                                <div class="mb-3">
+                                <div class="mb-3 mt-3">
                                     <label for="nama_kelas" class="form-label">Nama Kelas</label>
                                     <input type="text" class="form-control <?= isset($errors['nama_kelas']) ? 'is-invalid' : '' ?>"
                                         id="nama_kelas" name="nama_kelas" value="<?= htmlspecialchars($data['nama_kelas']) ?>" required>

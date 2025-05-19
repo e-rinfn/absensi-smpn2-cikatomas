@@ -86,23 +86,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <?php endif; ?>
 
                     <form method="POST">
-                        <div class="form-group">
-                            <label>Kode Mata Pelajaran</label>
-                            <input type="text" name="kode_mapel" class="form-control" value="<?= htmlspecialchars($mapel['kode_mapel']) ?>" required>
-                        </div>
+                        <div class="card">
+                            <div class="card-header bg-warning">
+                                <h5 class="mb-0">Form Edit Mata Pelajaran</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3 mt-3">
+                                    <div class="form-group">
+                                        <label>Kode Mata Pelajaran</label>
+                                        <input type="text" name="kode_mapel" class="form-control" value="<?= htmlspecialchars($mapel['kode_mapel']) ?>" required>
+                                    </div>
+                                </div>
 
-                        <div class="form-group">
-                            <label>Nama Mata Pelajaran</label>
-                            <input type="text" name="nama_mapel" class="form-control" value="<?= htmlspecialchars($mapel['nama_mapel']) ?>" required>
-                        </div>
+                                <div class="mb-3">
+                                    <div class="form-group">
+                                        <label>Nama Mata Pelajaran</label>
+                                        <input type="text" name="nama_mapel" class="form-control" value="<?= htmlspecialchars($mapel['nama_mapel']) ?>" required>
+                                    </div>
+                                </div>
 
-                        <div class="form-group">
-                            <label>Deskripsi</label>
-                            <textarea name="deskripsi" class="form-control" rows="3"><?= htmlspecialchars($mapel['deskripsi']) ?></textarea>
-                        </div>
-
-                        <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
-                        <a href="index.php" class="btn btn-secondary">Kembali</a>
+                                <div class="mb-2">
+                                    <div class="form-group">
+                                        <label>Deskripsi</label>
+                                        <textarea name="deskripsi" class="form-control" rows="3"><?= htmlspecialchars($mapel['deskripsi']) ?></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-footer">
+                                <button type="submit" class="btn btn-primary">Simpan</button>
+                                <a href="index.php" class="btn btn-secondary">Batal</a>
+                            </div>
                     </form>
 
                     <!-- Main content end -->

@@ -67,32 +67,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <?php endif; ?>
 
                     <form method="POST">
-                        <div class="mb-3">
-                            <label class="form-label">Kode Mata Pelajaran</label>
-                            <input type="text" name="kode_mapel" class="form-control" required>
-                        </div>
+                        <div class="card">
+                            <div class="card-header bg-warning">
+                                <h5 class="mb-0">Form Tambah Mata Pelajaran</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3 mt-3"></div>
+                                <div class="mb-3">
+                                    <label class="form-label">Kode Mata Pelajaran</label>
+                                    <input type="text" name="kode_mapel" class="form-control" required>
+                                </div>
 
-                        <div class="mb-3">
-                            <label class="form-label">Nama Mata Pelajaran</label>
-                            <input type="text" name="nama_mapel" class="form-control" required>
-                        </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Nama Mata Pelajaran</label>
+                                    <input type="text" name="nama_mapel" class="form-control" required>
+                                </div>
 
-                        <div class="mb-3">
-                            <label class="form-label">Deskripsi</label>
-                            <textarea name="deskripsi" class="form-control" rows="3"></textarea>
-                        </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Deskripsi</label>
+                                    <textarea name="deskripsi" class="form-control" rows="3"></textarea>
+                                </div>
 
-                        <div class="d-flex justify-content-between">
-                            <a href="index.php" class="btn btn-secondary">Kembali</a>
-                            <button type="submit" class="btn btn-primary">Simpan</button>
+                            </div>
+                            <div class="card-footer">
+                                <button type="submit" class="btn btn-primary">Simpan</button>
+                                <a href="index.php" class="btn btn-secondary">Batal</a>
+                            </div>
                         </div>
                     </form>
-
                     <!-- Main content end -->
                 </section>
             </div>
         </div>
-
         <!-- Main end -->
     </div>
 

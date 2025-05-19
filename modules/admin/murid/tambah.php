@@ -105,8 +105,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                     <form method="POST">
                         <div class="card">
+                            <div class="card-header bg-warning">
+                                <h5 class="mb-0">Form Tambah Murid</h5>
+                            </div>
                             <div class="card-body">
-                                <div class="mb-3">
+                                <div class="mb-3 mt-3">
                                     <label for="nis" class="form-label">NIS</label>
                                     <input type="text" class="form-control <?= isset($errors['nis']) ? 'is-invalid' : '' ?>"
                                         id="nis" name="nis" value="<?= htmlspecialchars($_POST['nis'] ?? '') ?>">
