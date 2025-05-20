@@ -153,10 +153,10 @@ $aktivitas_terbaru = $pdo->query("
                                                     </div>
                                                     <p class="mb-1">
                                                         <span class="badge 
-                                    <?= $aktivitas['status'] == 'hadir' ? 'bg-success' : '' ?>
-                                    <?= $aktivitas['status'] == 'sakit' ? 'bg-info' : '' ?>
-                                    <?= $aktivitas['status'] == 'izin' ? 'bg-warning' : '' ?>
-                                    <?= $aktivitas['status'] == 'alpha' ? 'bg-danger' : '' ?>">
+                                                            <?= $aktivitas['status'] == 'hadir' ? 'bg-success' : '' ?>
+                                                            <?= $aktivitas['status'] == 'sakit' ? 'bg-info' : '' ?>
+                                                            <?= $aktivitas['status'] == 'izin' ? 'bg-warning' : '' ?>
+                                                            <?= $aktivitas['status'] == 'alpha' ? 'bg-danger' : '' ?>">
                                                             <?= ucfirst($aktivitas['status']) ?>
                                                         </span>
                                                         pada <?= $aktivitas['nama_mapel'] ?>

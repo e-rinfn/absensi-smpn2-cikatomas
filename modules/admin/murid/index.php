@@ -76,7 +76,7 @@ $wali = $pdo->query("SELECT * FROM users WHERE role = 'wali_murid' ORDER BY full
             </header>
 
             <div class="page-heading">
-                <h3>Judul Halaman!</h3>
+                <h3>DAFTAR MURID</h3>
             </div>
             <div class="page-content">
                 <section class="row">

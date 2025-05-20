@@ -78,51 +78,58 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <?php endif; ?>
 
                     <form method="POST">
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <label class="form-label">Username</label>
-                                <input type="text" name="username" class="form-control" required>
+                        <div class="card">
+                            <div class="card-header bg-warning">
+                                <h5 class="mb-0">Form Tambah Murid</h5>
                             </div>
-                            <div class="col-md-6">
-                                <label class="form-label">Role</label>
-                                <select name="role" class="form-select" required>
-                                    <option value="">Pilih Role</option>
-                                    <option value="admin">Admin</option>
-                                    <option value="guru">Guru</option>
-                                    <option value="wali_murid">Wali Murid</option>
-                                </select>
+                            <div class="card-body">
+                                <div class="row mb-3 mt-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label">Username</label>
+                                        <input type="text" name="username" class="form-control" required>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">Role</label>
+                                        <select name="role" class="form-select" required>
+                                            <option value="">Pilih Role</option>
+                                            <option value="admin">Admin</option>
+                                            <option value="guru">Guru</option>
+                                            <option value="wali_murid">Wali Murid</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label">Password</label>
+                                        <input type="password" name="password" class="form-control" required>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">Konfirmasi Password</label>
+                                        <input type="password" name="password_confirm" class="form-control" required>
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label">Email</label>
+                                    <input type="email" name="email" class="form-control" required>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label">Nama Lengkap</label>
+                                    <input type="text" name="full_name" class="form-control" required>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label">Nomor Telepon</label>
+                                    <input type="text" name="phone" class="form-control">
+                                </div>
+
                             </div>
-                        </div>
-
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <label class="form-label">Password</label>
-                                <input type="password" name="password" class="form-control" required>
+                            <div class="card-footer">
+                                <button type="submit" class="btn btn-primary">Simpan</button>
+                                <a href="index.php" class="btn btn-secondary">Batal</a>
                             </div>
-                            <div class="col-md-6">
-                                <label class="form-label">Konfirmasi Password</label>
-                                <input type="password" name="password_confirm" class="form-control" required>
-                            </div>
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label">Email</label>
-                            <input type="email" name="email" class="form-control" required>
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label">Nama Lengkap</label>
-                            <input type="text" name="full_name" class="form-control" required>
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label">Nomor Telepon</label>
-                            <input type="text" name="phone" class="form-control">
-                        </div>
-
-                        <div class="d-flex justify-content-between">
-                            <a href="index.php" class="btn btn-secondary">Kembali</a>
-                            <button type="submit" class="btn btn-primary">Simpan</button>
                         </div>
                     </form>
 

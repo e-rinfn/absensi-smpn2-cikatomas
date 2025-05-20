@@ -88,7 +88,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </header>
 
             <div class="page-heading">
-                <h3>Judul Halaman!</h3>
+                <h3>JADWAL PELAJARAN</h3>
             </div>
             <div class="page-content">
                 <section class="row">
@@ -99,10 +99,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <?php unset($_SESSION['error']); ?>
                     <?php endif; ?>
 
-                    <div class="card">
-                        <div class="card-body">
-                            <form method="POST">
-                                <div class="row mb-3">
+                    <form method="POST">
+                        <div class="card">
+                            <div class="card-header bg-warning">
+                                <h5 class="mb-0">Form Edit Jadwal</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row mb-3 mt-3">
                                     <div class="col-md-6">
                                         <label class="form-label">Kelas</label>
                                         <select name="kelas_id" class="form-select" required>
@@ -165,14 +168,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                             value="<?= $_POST['jam_selesai'] ?? substr($jadwal['jam_selesai'], 0, 5) ?>" required>
                                     </div>
                                 </div>
-
-                                <div class="d-flex justify-content-between">
-                                    <a href="index.php" class="btn btn-secondary">Kembali</a>
-                                    <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
-                                </div>
-                            </form>
+                            </div>
+                            <div class="card-footer">
+                                <button type="submit" class="btn btn-primary">Simpan</button>
+                                <a href="index.php" class="btn btn-secondary">Batal</a>
+                            </div>
                         </div>
-                    </div>
+                    </form>
 
                     <!-- Main content end -->
                 </section>

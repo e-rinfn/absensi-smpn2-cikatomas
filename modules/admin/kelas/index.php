@@ -42,7 +42,7 @@ foreach ($kelas as $k) {
             </header>
 
             <div class="page-heading">
-                <h3>Judul Halaman!</h3>
+                <h3>DAFTAR KELAS</h3>
             </div>
             <div class="page-content">
                 <section class="row">

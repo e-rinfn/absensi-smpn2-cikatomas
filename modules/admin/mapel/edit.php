@@ -69,7 +69,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </header>
 
             <div class="page-heading">
-                <h3>Judul Halaman!</h3>
+                <h3>MATA PELAJARAN</h3>
             </div>
             <div class="page-content">
                 <section class="row">

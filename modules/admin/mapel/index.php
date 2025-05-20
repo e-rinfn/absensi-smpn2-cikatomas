@@ -58,7 +58,7 @@ $mapel_list = $stmt->fetchAll();
             </header>
 
             <div class="page-heading">
-                <h3>Judul Halaman!</h3>
+                <h3>DAFTAR MATA PELAJARAN</h3>
             </div>
             <div class="page-content">
                 <section class="row">
