@@ -1,31 +1,122 @@
-<ul class="nav flex-column">
-    <li class="nav-item">
-        <a class="nav-link active" href="../guru/dashboard.php">
-            <i class="bi bi-speedometer2"></i> Dashboard
-        </a>
-    </li>
+<?php
+require_once __DIR__ . '../../../config/config.php';
 
-    <li class="nav-item">
-        <a class="nav-link" href="../guru/jadwal/index.php">
-            <i class="bi bi-calendar-event"></i> Jadwal Mengajar
-        </a>
-    </li>
+$current_uri = $_SERVER['REQUEST_URI'];
 
-    <li class="nav-item">
-        <a class="nav-link" href="../guru/absensi/index.php">
-            <i class="bi bi-clipboard-check"></i> Absensi
-        </a>
-    </li>
+function isActive($path)
+{
+    global $current_uri;
+    return strpos($current_uri, $path) !== false ? 'active' : '';
+}
 
-    <li class="nav-item">
-        <a class="nav-link" href="../guru/laporan/index.php">
-            <i class="bi bi-file-earmark-text"></i> Laporan
-        </a>
-    </li>
+// Mendapatkan waktu saat ini
+$current_time = date('H:i:s'); // Format waktu: Jam:Menit:Detik
+$current_date = date('d F Y'); // Format tanggal: 01 January 2023
+?>
 
-    <li class="nav-item">
-        <a class="nav-link" href="../guru/profil.php">
-            <i class="bi bi-person"></i> Profil
-        </a>
-    </li>
-</ul>
+
+<div id="sidebar" class="active">
+    <div class="sidebar-wrapper active">
+        <div class="sidebar-header p-3 border-bottom bg-light">
+            <div class="d-flex align-items-center justify-content-between">
+                <div class="d-flex align-items-center">
+                    <a href="<?= $base_url ?>" class="d-block">
+                        <img src="<?= $base_url ?>assets/images/Logo.png" alt="Logo" style="height: 60px;" class="me-3" />
+                    </a>
+                    <div>
+                        <h5 class="mb-0 fw-bold">ABSENSI SMPN 2 Cikatomas</h5>
+                    </div>
+                </div>
+                <div class="d-xl-none">
+                    <a href="#" class="sidebar-hide btn btn-sm btn-light">
+                        <i class="bi bi-x fs-4"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="sidebar-menu">
+            <ul class="menu list-unstyled mb-0">
+
+                <li class="sidebar-item <?= isActive('/guru/dashboard') ?>">
+                    <a href="<?= $base_url ?>modules/guru/dashboard.php" class="sidebar-link d-flex align-items-center">
+                        <i class="bi bi-speedometer2 me-2"></i>
+                        <span>Dashboard</span>
+                    </a>
+                </li>
+
+                <li class="sidebar-title text-uppercase text-muted small fw-bold mt-3 ps-3">
+                    Group Menu 1
+                </li>
+
+                <li class="sidebar-item <?= isActive('/guru/jadwal') ?>">
+                    <a href="<?= $base_url ?>modules/guru/jadwal/index.php" class="sidebar-link d-flex align-items-center">
+                        <i class="bi bi-house-fill me-2"></i>
+                        <span>Jadwal Mengajar</span>
+                    </a>
+                </li>
+
+                <li class="sidebar-item <?= isActive('/guru/absensi') ?>">
+                    <a href="<?= $base_url ?>modules/guru/absensi/index.php" class="sidebar-link d-flex align-items-center">
+                        <i class="bi bi-people-fill me-2"></i>
+                        <span>Absensi</span>
+                    </a>
+                </li>
+
+                <li class="sidebar-title text-uppercase text-muted small fw-bold mt-4 ps-3">
+                    Group Menu 2
+                </li>
+
+
+                <li class="sidebar-item <?= isActive('/guru/laporan') ?>">
+                    <a href="<?= $base_url ?>modules/guru/laporan/index.php" class="sidebar-link d-flex align-items-center">
+                        <i class="bi bi-file-bar-graph-fill me-2"></i>
+                        <span>Laporan</span>
+                    </a>
+                </li>
+
+
+                <li class="sidebar-title text-uppercase text-muted small fw-bold mt-4 ps-3">
+                    Group Menu 3
+                </li>
+
+                <li class="sidebar-item">
+                    <a href="<?= $base_url ?>logout.php" class="sidebar-link d-flex justify-content-center align-items-center text-white bg-danger" style="height: 40px;">
+                        <span class="text-center ms-0">Logout</span>
+                    </a>
+                </li>
+
+
+                <div class="sidebar-footer p-3 mb-5 border-top bg-light mt-3">
+                    <div class="text-center">
+                        <p>Waktu Saat Ini</p>
+                        <div class="fw-bold mb-1" id="live-clock"><?= $current_time ?></div>
+                        <div class="small text-muted"><?= $current_date ?></div>
+                    </div>
+                </div>
+
+            </ul>
+
+        </div>
+        <button class="sidebar-toggler btn x">
+            <i data-feather="x"></i>
+        </button>
+    </div>
+</div>
+
+<!-- Script untuk update waktu secara realtime -->
+<script>
+    function updateClock() {
+        const now = new Date();
+        const timeStr = now.toLocaleTimeString();
+        document.getElementById('live-clock').textContent = timeStr;
+
+        // Update setiap detik
+        setTimeout(updateClock, 1000);
+    }
+
+    // Jalankan saat halaman dimuat
+    document.addEventListener('DOMContentLoaded', function() {
+        updateClock();
+    });
+</script>

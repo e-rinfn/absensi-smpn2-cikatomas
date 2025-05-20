@@ -61,129 +61,173 @@ $stmt->execute([$_SESSION['user_id']]);
 $kelas_options = $stmt->fetchAll();
 ?>
 
+
 <?php include '../../../includes/header.php'; ?>
-<?php include '../../../includes/navigation/guru.php'; ?>
 
-<div class="container py-4">
-    <h1 class="mb-4">Daftar Absensi</h1>
+<body>
+    <div id="app">
+        <!-- Sidebar start -->
 
-    <!-- Filter Form -->
-    <div class="card mb-4">
-        <div class="card-header bg-primary text-white">
-            <i class="fas fa-filter me-2"></i>Filter Absensi
+        <?php include '../../../includes/navigation/guru.php'; ?>
+
+        <!-- Sidebar end -->
+
+        <!-- Main start -->
+
+        <div id="main">
+            <header class="mb-3">
+                <a href="#" class="burger-btn d-block d-xl-none">
+                    <i class="bi bi-justify fs-3"></i>
+                </a>
+            </header>
+
+            <div class="page-heading">
+                <h3>Judul Halaman!</h3>
+            </div>
+            <div class="page-content">
+                <section class="row">
+                    <!-- Main content start -->
+
+                    <!-- Filter Form -->
+                    <div class="card mb-4">
+                        <div class="card-header mb-3">
+                            Filter Absensi
+                        </div>
+                        <div class="card-body">
+                            <form method="get" class="row g-3">
+                                <div class="col-md-3">
+                                    <label for="mapel_id" class="form-label">Mata Pelajaran</label>
+                                    <select id="mapel_id" name="mapel_id" class="form-select">
+                                        <option value="">Semua Mapel</option>
+                                        <?php foreach ($mapel_options as $mapel): ?>
+                                            <option value="<?= $mapel['mapel_id'] ?>" <?= $mapel_id == $mapel['mapel_id'] ? 'selected' : '' ?>>
+                                                <?= htmlspecialchars($mapel['nama_mapel']) ?>
+                                            </option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                </div>
+
+                                <div class="col-md-3">
+                                    <label for="kelas_id" class="form-label">Kelas</label>
+                                    <select id="kelas_id" name="kelas_id" class="form-select">
+                                        <option value="">Semua Kelas</option>
+                                        <?php foreach ($kelas_options as $kelas): ?>
+                                            <option value="<?= $kelas['kelas_id'] ?>" <?= $kelas_id == $kelas['kelas_id'] ? 'selected' : '' ?>>
+                                                <?= htmlspecialchars($kelas['nama_kelas']) ?>
+                                            </option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                </div>
+
+                                <div class="col-md-2">
+                                    <label for="tanggal_mulai" class="form-label">Tanggal Mulai</label>
+                                    <input type="date" id="tanggal_mulai" name="tanggal_mulai"
+                                        value="<?= htmlspecialchars($tanggal_mulai) ?>" class="form-control">
+                                </div>
+
+                                <div class="col-md-2">
+                                    <label for="tanggal_selesai" class="form-label">Tanggal Selesai</label>
+                                    <input type="date" id="tanggal_selesai" name="tanggal_selesai"
+                                        value="<?= htmlspecialchars($tanggal_selesai) ?>" class="form-control">
+                                </div>
+
+                                <div class="col-md-2 d-flex align-items-end">
+                                    <button type="submit" class="btn btn-primary w-100">
+                                        <i class="fas fa-search me-1"></i> Filter
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Tabel Absensi -->
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center  mb-3">
+                            <span>Data Absensi</span>
+                            <a href="input.php" class="btn btn-primary">
+                                Input Baru
+                            </a>
+                        </div>
+
+                        <div class="card-body">
+                            <?php if (empty($absensi)): ?>
+                                <div class="alert alert-info">Tidak ada data absensi untuk filter yang dipilih.</div>
+                            <?php else: ?>
+                                <div class="table-responsive">
+                                    <table class="table table-striped table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th>Tanggal</th>
+                                                <th>Hari</th>
+                                                <th>Mapel</th>
+                                                <th>Kelas</th>
+                                                <th>NIS</th>
+                                                <th>Nama Siswa</th>
+                                                <th>Status</th>
+                                                <th>Keterangan</th>
+                                                <th>Aksi</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <?php foreach ($absensi as $a): ?>
+                                                <tr>
+                                                    <td><?= date('d/m/Y', strtotime($a['tanggal'])) ?></td>
+                                                    <td><?= $a['hari'] ?></td>
+                                                    <td><?= htmlspecialchars($a['nama_mapel']) ?></td>
+                                                    <td><?= htmlspecialchars($a['nama_kelas']) ?></td>
+                                                    <td><?= htmlspecialchars($a['nis']) ?></td>
+                                                    <td><?= htmlspecialchars($a['nama_lengkap']) ?></td>
+                                                    <td>
+                                                        <?php
+                                                        $badge_class = [
+                                                            'hadir' => 'bg-success',
+                                                            'sakit' => 'bg-info',
+                                                            'izin'  => 'bg-warning',
+                                                            'alpha' => 'bg-danger'
+                                                        ];
+                                                        ?>
+                                                        <span class="badge <?= $badge_class[$a['status']] ?>">
+                                                            <?= ucfirst($a['status']) ?>
+                                                        </span>
+                                                    </td>
+                                                    <td><?= htmlspecialchars($a['keterangan']) ?></td>
+                                                    <td>
+                                                        <a href="edit.php?id=<?= $a['absensi_id'] ?>"
+                                                            class="btn btn-sm btn-outline-primary" title="Edit">
+                                                            <i class="bi bi-pencil-square"></i>
+                                                        </a>
+                                                    </td>
+                                                </tr>
+                                            <?php endforeach; ?>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+
+                    <!-- Main content end -->
+                </section>
+            </div>
         </div>
-        <div class="card-body">
-            <form method="get" class="row g-3">
-                <div class="col-md-4">
-                    <label for="mapel_id" class="form-label">Mata Pelajaran</label>
-                    <select id="mapel_id" name="mapel_id" class="form-select">
-                        <option value="">Semua Mapel</option>
-                        <?php foreach ($mapel_options as $mapel): ?>
-                            <option value="<?= $mapel['mapel_id'] ?>" <?= $mapel_id == $mapel['mapel_id'] ? 'selected' : '' ?>>
-                                <?= htmlspecialchars($mapel['nama_mapel']) ?>
-                            </option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
 
-                <div class="col-md-3">
-                    <label for="kelas_id" class="form-label">Kelas</label>
-                    <select id="kelas_id" name="kelas_id" class="form-select">
-                        <option value="">Semua Kelas</option>
-                        <?php foreach ($kelas_options as $kelas): ?>
-                            <option value="<?= $kelas['kelas_id'] ?>" <?= $kelas_id == $kelas['kelas_id'] ? 'selected' : '' ?>>
-                                <?= htmlspecialchars($kelas['nama_kelas']) ?>
-                            </option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
-
-                <div class="col-md-2">
-                    <label for="tanggal_mulai" class="form-label">Tanggal Mulai</label>
-                    <input type="date" id="tanggal_mulai" name="tanggal_mulai"
-                        value="<?= htmlspecialchars($tanggal_mulai) ?>" class="form-control">
-                </div>
-
-                <div class="col-md-2">
-                    <label for="tanggal_selesai" class="form-label">Tanggal Selesai</label>
-                    <input type="date" id="tanggal_selesai" name="tanggal_selesai"
-                        value="<?= htmlspecialchars($tanggal_selesai) ?>" class="form-control">
-                </div>
-
-                <div class="col-md-1 d-flex align-items-end">
-                    <button type="submit" class="btn btn-primary w-100">
-                        <i class="fas fa-search me-1"></i> Filter
-                    </button>
-                </div>
-            </form>
-        </div>
+        <!-- Main end -->
     </div>
 
-    <!-- Tabel Absensi -->
-    <div class="card">
-        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-            <span><i class="fas fa-list me-2"></i>Data Absensi</span>
-            <a href="input.php" class="btn btn-light btn-sm">
-                <i class="fas fa-plus me-1"></i> Input Baru
-            </a>
-        </div>
 
-        <div class="card-body">
-            <?php if (empty($absensi)): ?>
-                <div class="alert alert-info">Tidak ada data absensi untuk filter yang dipilih.</div>
-            <?php else: ?>
-                <div class="table-responsive">
-                    <table class="table table-striped table-hover">
-                        <thead>
-                            <tr>
-                                <th>Tanggal</th>
-                                <th>Hari</th>
-                                <th>Mapel</th>
-                                <th>Kelas</th>
-                                <th>NIS</th>
-                                <th>Nama Siswa</th>
-                                <th>Status</th>
-                                <th>Keterangan</th>
-                                <th>Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php foreach ($absensi as $a): ?>
-                                <tr>
-                                    <td><?= date('d/m/Y', strtotime($a['tanggal'])) ?></td>
-                                    <td><?= $a['hari'] ?></td>
-                                    <td><?= htmlspecialchars($a['nama_mapel']) ?></td>
-                                    <td><?= htmlspecialchars($a['nama_kelas']) ?></td>
-                                    <td><?= htmlspecialchars($a['nis']) ?></td>
-                                    <td><?= htmlspecialchars($a['nama_lengkap']) ?></td>
-                                    <td>
-                                        <?php
-                                        $badge_class = [
-                                            'hadir' => 'bg-success',
-                                            'sakit' => 'bg-info',
-                                            'izin'  => 'bg-warning',
-                                            'alpha' => 'bg-danger'
-                                        ];
-                                        ?>
-                                        <span class="badge <?= $badge_class[$a['status']] ?>">
-                                            <?= ucfirst($a['status']) ?>
-                                        </span>
-                                    </td>
-                                    <td><?= htmlspecialchars($a['keterangan']) ?></td>
-                                    <td>
-                                        <a href="edit.php?id=<?= $a['absensi_id'] ?>"
-                                            class="btn btn-sm btn-outline-primary" title="Edit">
-                                            <i class="fas fa-edit"></i>
-                                        </a>
-                                    </td>
-                                </tr>
-                            <?php endforeach; ?>
-                        </tbody>
-                    </table>
-                </div>
-            <?php endif; ?>
-        </div>
-    </div>
-</div>
+    <!-- Javascript add start -->
 
-<?php include '../../../includes/footer.php'; ?>
+    <!-- your javascript code here -->
+
+    <!-- Javascript add end -->
+
+    <!-- Javascript template mazer start -->
+    <script src="<?= $base_url ?>/assets/vendors/perfect-scrollbar/perfect-scrollbar.min.js"></script>
+    <script src="<?= $base_url ?>/assets/js/bootstrap.bundle.min.js"></script>
+
+    <script src="<?= $base_url ?>/assets/vendors/apexcharts/apexcharts.js"></script>
+    <script src="<?= $base_url ?>/assets/js/pages/dashboard.js"></script>
+
+    <script src="<?= $base_url ?>/assets/js/main.js"></script>
+    <!-- Javascrip template mazer end -->
+</body>

@@ -60,82 +60,126 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 ?>
 
+
 <?php include '../../../includes/header.php'; ?>
-<?php include '../../../includes/navigation/guru.php'; ?>
 
-<div class="container py-4">
-    <h1 class="mb-4">Input Absensi</h1>
+<body>
+    <div id="app">
+        <!-- Sidebar start -->
 
-    <div class="card mb-4">
-        <div class="card-header bg-primary text-white">
-            <h4><?= htmlspecialchars($jadwal['nama_mapel']) ?> - <?= htmlspecialchars($jadwal['nama_kelas']) ?></h4>
+        <?php include '../../../includes/navigation/guru.php'; ?>
+
+        <!-- Sidebar end -->
+
+        <!-- Main start -->
+
+        <div id="main">
+            <header class="mb-3">
+                <a href="#" class="burger-btn d-block d-xl-none">
+                    <i class="bi bi-justify fs-3"></i>
+                </a>
+            </header>
+
+            <div class="page-heading">
+                <h3>Judul Halaman!</h3>
+            </div>
+            <div class="page-content">
+                <section class="row">
+                    <!-- Main content start -->
+
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h4><?= htmlspecialchars($jadwal['nama_mapel']) ?> - <?= htmlspecialchars($jadwal['nama_kelas']) ?></h4>
+                        </div>
+                        <div class="card-body">
+                            <p><strong>Hari:</strong> <?= $jadwal['hari'] ?></p>
+                            <p><strong>Jam:</strong> <?= date('H:i', strtotime($jadwal['jam_mulai'])) ?> - <?= date('H:i', strtotime($jadwal['jam_selesai'])) ?></p>
+                        </div>
+                    </div>
+
+                    <form method="POST" class="mb-4">
+                        <div class="form-group row">
+                            <label for="tanggal" class="col-sm-2 col-form-label">Tanggal</label>
+                            <div class="col-sm-4">
+                                <input type="date" class="form-control" id="tanggal" name="tanggal" value="<?= $tanggal ?>" required>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-header">
+                                <h5>Daftar Murid</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-bordered table-hover">
+                                        <thead class="thead-light">
+                                            <tr>
+                                                <th width="10%">NIS</th>
+                                                <th width="30%">Nama Murid</th>
+                                                <th width="20%">Status</th>
+                                                <th width="40%">Keterangan</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <?php foreach ($murid as $m):
+                                                $absensi = $absensi_terdaftar[$m['murid_id']] ?? null;
+                                            ?>
+                                                <tr>
+                                                    <td><?= htmlspecialchars($m['nis']) ?></td>
+                                                    <td><?= htmlspecialchars($m['nama_lengkap']) ?></td>
+                                                    <td>
+                                                        <select name="absensi[<?= $m['murid_id'] ?>]" class="form-control" required>
+                                                            <option value="hadir" <?= ($absensi && $absensi['status'] == 'hadir') ? 'selected' : '' ?>>Hadir</option>
+                                                            <option value="sakit" <?= ($absensi && $absensi['status'] == 'sakit') ? 'selected' : '' ?>>Sakit</option>
+                                                            <option value="izin" <?= ($absensi && $absensi['status'] == 'izin') ? 'selected' : '' ?>>Izin</option>
+                                                            <option value="alpha" <?= ($absensi && $absensi['status'] == 'alpha') ? 'selected' : '' ?>>Alpha</option>
+                                                        </select>
+                                                    </td>
+                                                    <td>
+                                                        <input type="text" name="keterangan[<?= $m['murid_id'] ?>]"
+                                                            class="form-control"
+                                                            value="<?= $absensi ? htmlspecialchars($absensi['keterangan']) : '' ?>">
+                                                    </td>
+                                                </tr>
+                                            <?php endforeach; ?>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group mt-3">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Simpan Absensi
+                            </button>
+                            <a href="../jadwal/" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Kembali
+                            </a>
+                        </div>
+                    </form>
+
+                    <!-- Main content end -->
+                </section>
+            </div>
         </div>
-        <div class="card-body">
-            <p><strong>Hari:</strong> <?= $jadwal['hari'] ?></p>
-            <p><strong>Jam:</strong> <?= date('H:i', strtotime($jadwal['jam_mulai'])) ?> - <?= date('H:i', strtotime($jadwal['jam_selesai'])) ?></p>
-        </div>
+
+        <!-- Main end -->
     </div>
 
-    <form method="POST" class="mb-4">
-        <div class="form-group row">
-            <label for="tanggal" class="col-sm-2 col-form-label">Tanggal</label>
-            <div class="col-sm-4">
-                <input type="date" class="form-control" id="tanggal" name="tanggal" value="<?= $tanggal ?>" required>
-            </div>
-        </div>
 
-        <div class="card">
-            <div class="card-header bg-secondary text-white">
-                <h5>Daftar Murid</h5>
-            </div>
-            <div class="card-body">
-                <div class="table-responsive">
-                    <table class="table table-bordered table-hover">
-                        <thead class="thead-light">
-                            <tr>
-                                <th width="10%">NIS</th>
-                                <th width="30%">Nama Murid</th>
-                                <th width="20%">Status</th>
-                                <th width="40%">Keterangan</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php foreach ($murid as $m):
-                                $absensi = $absensi_terdaftar[$m['murid_id']] ?? null;
-                            ?>
-                                <tr>
-                                    <td><?= htmlspecialchars($m['nis']) ?></td>
-                                    <td><?= htmlspecialchars($m['nama_lengkap']) ?></td>
-                                    <td>
-                                        <select name="absensi[<?= $m['murid_id'] ?>]" class="form-control" required>
-                                            <option value="hadir" <?= ($absensi && $absensi['status'] == 'hadir') ? 'selected' : '' ?>>Hadir</option>
-                                            <option value="sakit" <?= ($absensi && $absensi['status'] == 'sakit') ? 'selected' : '' ?>>Sakit</option>
-                                            <option value="izin" <?= ($absensi && $absensi['status'] == 'izin') ? 'selected' : '' ?>>Izin</option>
-                                            <option value="alpha" <?= ($absensi && $absensi['status'] == 'alpha') ? 'selected' : '' ?>>Alpha</option>
-                                        </select>
-                                    </td>
-                                    <td>
-                                        <input type="text" name="keterangan[<?= $m['murid_id'] ?>]"
-                                            class="form-control"
-                                            value="<?= $absensi ? htmlspecialchars($absensi['keterangan']) : '' ?>">
-                                    </td>
-                                </tr>
-                            <?php endforeach; ?>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
+    <!-- Javascript add start -->
 
-        <div class="form-group mt-3">
-            <button type="submit" class="btn btn-primary">
-                <i class="fas fa-save"></i> Simpan Absensi
-            </button>
-            <a href="../jadwal/" class="btn btn-secondary">
-                <i class="fas fa-arrow-left"></i> Kembali
-            </a>
-        </div>
-    </form>
-</div>
+    <!-- your javascript code here -->
 
-<?php include '../../../includes/footer.php'; ?>
+    <!-- Javascript add end -->
+
+    <!-- Javascript template mazer start -->
+    <script src="<?= $base_url ?>/assets/vendors/perfect-scrollbar/perfect-scrollbar.min.js"></script>
+    <script src="<?= $base_url ?>/assets/js/bootstrap.bundle.min.js"></script>
+
+    <script src="<?= $base_url ?>/assets/vendors/apexcharts/apexcharts.js"></script>
+    <script src="<?= $base_url ?>/assets/js/pages/dashboard.js"></script>
+
+    <script src="<?= $base_url ?>/assets/js/main.js"></script>
+    <!-- Javascrip template mazer end -->
+</body>

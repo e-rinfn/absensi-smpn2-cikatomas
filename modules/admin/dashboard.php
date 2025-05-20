@@ -107,6 +107,36 @@ $aktivitas_terbaru = $pdo->query("
                         </div>
                     </div>
 
+                    <!-- Quick Actions -->
+                    <div class="card w-75">
+                        <div class="card-header">
+                            <h5 class="mb-0">Quick Actions</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-3 mb-3">
+                                    <a href="kelas/tambah.php" class="btn btn-outline-primary w-100">
+                                        <i class="fas fa-plus-circle"></i> Tambah Kelas
+                                    </a>
+                                </div>
+                                <div class="col-md-3 mb-3">
+                                    <a href="user/tambah.php" class="btn btn-outline-success w-100">
+                                        <i class="fas fa-user-plus"></i> Tambah User
+                                    </a>
+                                </div>
+                                <div class="col-md-3 mb-3">
+                                    <a href="murid/tambah.php" class="btn btn-outline-info w-100">
+                                        <i class="fas fa-user-graduate"></i> Tambah Murid
+                                    </a>
+                                </div>
+                                <div class="col-md-3 mb-3">
+                                    <a href="mapel/tambah.php" class="btn btn-outline-warning w-100">
+                                        <i class="fas fa-book"></i> Tambah Mapel
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
                     <!-- Row 2 -->
                     <div class="row">
@@ -176,36 +206,7 @@ $aktivitas_terbaru = $pdo->query("
 
                     </div>
 
-                    <!-- Quick Actions -->
-                    <div class="card mt-4">
-                        <div class="card-header bg-light">
-                            <h5 class="mb-0">Quick Actions</h5>
-                        </div>
-                        <div class="card-body">
-                            <div class="row">
-                                <div class="col-md-3 mb-3">
-                                    <a href="kelas/tambah.php" class="btn btn-outline-primary w-100">
-                                        <i class="fas fa-plus-circle"></i> Tambah Kelas
-                                    </a>
-                                </div>
-                                <div class="col-md-3 mb-3">
-                                    <a href="user/tambah.php" class="btn btn-outline-success w-100">
-                                        <i class="fas fa-user-plus"></i> Tambah User
-                                    </a>
-                                </div>
-                                <div class="col-md-3 mb-3">
-                                    <a href="murid/tambah.php" class="btn btn-outline-info w-100">
-                                        <i class="fas fa-user-graduate"></i> Tambah Murid
-                                    </a>
-                                </div>
-                                <div class="col-md-3 mb-3">
-                                    <a href="mapel/tambah.php" class="btn btn-outline-warning w-100">
-                                        <i class="fas fa-book"></i> Tambah Mapel
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+
 
                     <!-- Main content end -->
                 </section>

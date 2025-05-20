@@ -10,9 +10,9 @@
     <title>Sistem Absensi SMPN 2 Cikatomas</title>
 
     <link rel="preconnect" href="https://fonts.gstatic.com" />
-    <link
+    <!-- <link
         href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;600;700;800&display=swap"
-        rel="stylesheet" />
+        rel="stylesheet" /> -->
     <link rel="stylesheet" href="<?= $base_url ?>assets/css/bootstrap.css" />
 
     <link rel="stylesheet" href="<?= $base_url ?>assets/vendors/iconly/bold.css" />

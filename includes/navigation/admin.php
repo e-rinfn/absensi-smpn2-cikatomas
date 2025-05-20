@@ -105,10 +105,11 @@ $current_date = date('d F Y'); // Format tanggal: 01 January 2023
                 </li>
 
                 <li class="sidebar-item">
-                    <a href="<?= $base_url ?>logout.php" class="sidebar-link d-flex align-items-center text-white bg-danger">
-                        <span>Logout</span>
+                    <a href="<?= $base_url ?>logout.php" class="sidebar-link d-flex justify-content-center align-items-center text-white bg-danger" style="height: 40px;">
+                        <span class="text-center ms-0">Logout</span>
                     </a>
                 </li>
+
 
                 <div class="sidebar-footer p-3 mb-5 border-top bg-light mt-3">
                     <div class="text-center">
