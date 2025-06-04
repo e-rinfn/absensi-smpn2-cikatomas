@@ -75,15 +75,17 @@ $mapel_list = $stmt->fetchAll();
 <?php include '../../includes/header.php'; ?>
 <?php include '../../includes/navigation/wali.php'; ?>
 
-<div class="container">
-    <h1>Absensi Murid</h1>
+<div class="container-fluid px-3"> <!-- Gunakan container-fluid untuk lebar penuh -->
+    <h1 class="h4 mb-3">Absensi Murid</h1> <!-- Ukuran judul lebih kecil -->
 
-    <div class="card mb-4">
-        <div class="card-body">
-            <div class="row">
-                <div class="col-md-4">
-                    <label>Pilih Murid:</label>
-                    <select id="select-murid" class="form-select">
+    <!-- Card Filter -->
+    <div class="card mb-3 shadow-sm">
+        <div class="card-body p-2">
+            <div class="row g-2"> <!-- Mengurangi gap antar kolom -->
+                <!-- Select Murid -->
+                <div class="col-12 col-md-4">
+                    <label class="form-label small">Murid:</label>
+                    <select id="select-murid" class="form-select form-select-sm">
                         <?php foreach ($anak as $a): ?>
                             <option value="<?= $a['murid_id'] ?>" <?= $a['murid_id'] == $murid_id ? 'selected' : '' ?>>
                                 <?= htmlspecialchars($a['nama_lengkap']) ?> (<?= htmlspecialchars($a['nis']) ?>)
@@ -92,14 +94,16 @@ $mapel_list = $stmt->fetchAll();
                     </select>
                 </div>
 
-                <div class="col-md-3">
-                    <label>Pilih Bulan:</label>
-                    <input type="month" id="select-bulan" value="<?= $bulan ?>" class="form-control">
+                <!-- Select Bulan -->
+                <div class="col-6 col-md-3">
+                    <label class="form-label small">Bulan:</label>
+                    <input type="month" id="select-bulan" value="<?= $bulan ?>" class="form-control form-control-sm">
                 </div>
 
-                <div class="col-md-3">
-                    <label>Pilih Mata Pelajaran:</label>
-                    <select id="select-mapel" class="form-select">
+                <!-- Select Mapel -->
+                <div class="col-6 col-md-3">
+                    <label class="form-label small">Mapel:</label>
+                    <select id="select-mapel" class="form-select form-select-sm">
                         <option value="all">Semua Mapel</option>
                         <?php foreach ($mapel_list as $mapel): ?>
                             <option value="<?= $mapel['mapel_id'] ?>" <?= $mapel_id == $mapel['mapel_id'] ? 'selected' : '' ?>>
@@ -109,60 +113,74 @@ $mapel_list = $stmt->fetchAll();
                     </select>
                 </div>
 
-                <div class="col-md-2 d-flex align-items-end">
-                    <button id="btn-filter" class="btn btn-primary">Filter</button>
+                <!-- Tombol Filter -->
+                <div class="col-12 col-md-2 d-flex align-items-end">
+                    <button id="btn-filter" class="btn btn-primary btn-sm w-100">
+                        <i class="bi bi-funnel"></i> Filter
+                    </button>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="card">
-        <div class="card-header">
-            <h5>Absensi <?= htmlspecialchars($murid_selected['nama_lengkap']) ?> - <?= htmlspecialchars($murid_selected['nama_kelas']) ?></h5>
-            <p class="mb-0">Bulan: <?= date('F Y', strtotime($bulan . '-01')) ?></p>
+    <!-- Card Hasil Absensi -->
+    <div class="card shadow-sm">
+        <div class="card-header p-2">
+            <h5 class="h6 mb-1"><?= htmlspecialchars($murid_selected['nama_lengkap']) ?></h5>
+            <p class="small mb-0"><?= htmlspecialchars($murid_selected['nama_kelas']) ?> • <?= date('F Y', strtotime($bulan . '-01')) ?></p>
         </div>
 
-        <div class="card-body">
+        <div class="card-body p-0">
             <?php if (empty($absensi)): ?>
-                <div class="alert alert-info">Tidak ada data absensi untuk filter yang dipilih.</div>
+                <div class="alert alert-info m-2">Tidak ada data absensi</div>
             <?php else: ?>
+                <!-- Tabel Responsive -->
                 <div class="table-responsive">
-                    <table class="table table-bordered table-hover">
+                    <table class="table table-sm table-hover mb-0">
                         <thead class="table-light">
                             <tr>
-                                <th>Tanggal</th>
-                                <th>Hari</th>
-                                <th>Mata Pelajaran</th>
-                                <th>Guru</th>
-                                <th>Status</th>
-                                <th>Keterangan</th>
+                                <th width="100">Tanggal</th>
+                                <th width="80">Hari</th>
+                                <th>Mapel</th>
+                                <th width="80">Status</th>
                             </tr>
                         </thead>
                         <tbody>
                             <?php foreach ($absensi as $a): ?>
-                                <tr>
-                                    <td><?= date('d/m/Y', strtotime($a['tanggal'])) ?></td>
-                                    <td><?= $a['hari'] ?></td>
+                                <tr data-bs-toggle="collapse" data-bs-target="#detail-<?= $a['absensi_id'] ?>" aria-expanded="false">
+                                    <td><?= date('d/m/y', strtotime($a['tanggal'])) ?></td> <!-- Format tanggal lebih pendek -->
+                                    <td><?= substr($a['hari'], 0, 3) ?></td> <!-- Singkatan hari -->
                                     <td><?= htmlspecialchars($a['nama_mapel']) ?></td>
-                                    <td><?= htmlspecialchars($a['guru']) ?></td>
                                     <td>
-                                        <span class="badge 
-                                        <?= $a['status'] == 'hadir' ? 'bg-success' : ($a['status'] == 'sakit' ? 'bg-info' : ($a['status'] == 'izin' ? 'bg-warning' : 'bg-danger')) ?>">
-                                            <?= ucfirst($a['status']) ?>
+                                        <span class="badge <?= $a['status'] == 'hadir' ? 'bg-success' : ($a['status'] == 'sakit' ? 'bg-info' : ($a['status'] == 'izin' ? 'bg-warning' : 'bg-danger')) ?>">
+                                            <?= substr(ucfirst($a['status']), 0, 1) ?> <!-- Hanya tampilkan huruf pertama -->
                                         </span>
                                     </td>
-                                    <td><?= htmlspecialchars($a['keterangan']) ?></td>
+                                </tr>
+                                <!-- Detail Absensi (Collapse) -->
+                                <tr class="collapse" id="detail-<?= $a['absensi_id'] ?>">
+                                    <td colspan="4" class="small p-2 bg-light">
+                                        <div class="row">
+                                            <div class="col-6">
+                                                <strong>Guru:</strong> <?= htmlspecialchars($a['guru']) ?>
+                                            </div>
+                                            <div class="col-6">
+                                                <strong>Keterangan:</strong> <?= htmlspecialchars($a['keterangan']) ?>
+                                            </div>
+                                        </div>
+                                    </td>
                                 </tr>
                             <?php endforeach; ?>
                         </tbody>
                     </table>
                 </div>
 
-                <div class="mt-3">
-                    <button class="btn btn-outline-primary" onclick="window.print()">
-                        <i class="bi bi-printer"></i> Cetak Laporan
+                <!-- Tombol Cetak -->
+                <!-- <div class="p-2 text-center">
+                    <button class="btn btn-sm btn-outline-primary" onclick="window.print()">
+                        <i class="bi bi-printer"></i> Cetak
                     </button>
-                </div>
+                </div> -->
             <?php endif; ?>
         </div>
     </div>
@@ -170,7 +188,7 @@ $mapel_list = $stmt->fetchAll();
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Fungsi untuk apply filter
+        // Fungsi filter
         function applyFilter() {
             const murid_id = document.getElementById('select-murid').value;
             const bulan = document.getElementById('select-bulan').value;
@@ -184,16 +202,41 @@ $mapel_list = $stmt->fetchAll();
             window.location.href = url;
         }
 
-        // Event listener untuk tombol filter
+        // Event listeners
         document.getElementById('btn-filter').addEventListener('click', applyFilter);
-
-        // Event listener untuk enter di input
         document.getElementById('select-bulan').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                applyFilter();
+            if (e.key === 'Enter') applyFilter();
+        });
+
+        // Optimasi untuk mobile: tutup collapse saat klik di tempat lain
+        document.body.addEventListener('click', function(e) {
+            if (!e.target.closest('[data-bs-toggle="collapse"]')) {
+                const openCollapses = document.querySelectorAll('.collapse.show');
+                openCollapses.forEach(collapse => {
+                    bootstrap.Collapse.getInstance(collapse).hide();
+                });
             }
         });
     });
 </script>
 
+<style>
+    /* Tambahan CSS untuk mobile */
+    @media (max-width: 768px) {
+        .card-header h5 {
+            font-size: 1rem;
+        }
+
+        .table td,
+        .table th {
+            padding: 0.3rem;
+            font-size: 0.85rem;
+        }
+
+        .badge {
+            font-size: 0.75rem;
+            padding: 0.25em 0.4em;
+        }
+    }
+</style>
 <?php include '../../includes/footer.php'; ?>

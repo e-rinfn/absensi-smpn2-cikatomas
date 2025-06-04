@@ -71,9 +71,9 @@ $mapel_alpha = $stmt->fetchAll();
         <div class="col-md-4">
             <div class="card mb-4">
                 <div class="card-header bg-primary text-white">
-                    <h5>Profil Murid</h5>
+                    <h5 class="text-white">Profil Murid</h5>
                 </div>
-                <div class="card-body text-center">
+                <div class="card-body text-center mt-2">
                     <img src="../../assets/images/student.png" alt="Foto Murid" class="img-thumbnail mb-3" style="max-width: 200px;">
 
                     <h4><?= htmlspecialchars($murid['nama_lengkap']) ?></h4>
@@ -108,34 +108,34 @@ $mapel_alpha = $stmt->fetchAll();
         </div>
 
         <div class="col-md-8">
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h5>Statistik Absensi</h5>
+            <div class="card mb-4 shadow-sm">
+                <div class="card-header bg-white border-bottom">
+                    <h5 class="mb-0">Statistik Absensi</h5>
                 </div>
                 <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-3 text-center">
-                            <div class="stat-card bg-success">
-                                <h3><?= $stats['hadir'] ?></h3>
-                                <p>Hadir</p>
+                    <div class="row text-center">
+                        <div class="col-6 col-md-3 mb-3">
+                            <div class="p-3 bg-success text-white rounded">
+                                <h4 class="mb-1"><?= $stats['hadir'] ?></h4>
+                                <small>Hadir</small>
                             </div>
                         </div>
-                        <div class="col-md-3 text-center">
-                            <div class="stat-card bg-info">
-                                <h3><?= $stats['sakit'] ?></h3>
-                                <p>Sakit</p>
+                        <div class="col-6 col-md-3 mb-3">
+                            <div class="p-3 bg-info text-white rounded">
+                                <h4 class="mb-1"><?= $stats['sakit'] ?></h4>
+                                <small>Sakit</small>
                             </div>
                         </div>
-                        <div class="col-md-3 text-center">
-                            <div class="stat-card bg-warning">
-                                <h3><?= $stats['izin'] ?></h3>
-                                <p>Izin</p>
+                        <div class="col-6 col-md-3 mb-3">
+                            <div class="p-3 bg-warning text-dark rounded">
+                                <h4 class="mb-1"><?= $stats['izin'] ?></h4>
+                                <small>Izin</small>
                             </div>
                         </div>
-                        <div class="col-md-3 text-center">
-                            <div class="stat-card bg-danger">
-                                <h3><?= $stats['alpha'] ?></h3>
-                                <p>Alpha</p>
+                        <div class="col-6 col-md-3 mb-3">
+                            <div class="p-3 bg-danger text-white rounded">
+                                <h4 class="mb-1"><?= $stats['alpha'] ?></h4>
+                                <small>Alpha</small>
                             </div>
                         </div>
                     </div>
@@ -145,6 +145,7 @@ $mapel_alpha = $stmt->fetchAll();
                     </div>
                 </div>
             </div>
+
 
             <div class="card">
                 <div class="card-header">
