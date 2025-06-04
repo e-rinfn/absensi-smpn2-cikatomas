@@ -14,6 +14,11 @@
             <i class="bi bi-person me-2"></i> Profil Anak
         </a>
     </li>
+    <li class="nav-item">
+        <a class="mx-2 nav-link d-flex align-items-center px-3 py-2 rounded text-danger hover-bg-light" href="<?= $base_url ?>logout.php" onclick="return confirm('Yakin ingin logout?')">
+            <i class="bi bi-box-arrow-right me-2"></i> Logout
+        </a>
+    </li>
 </ul>
 
 <hr>

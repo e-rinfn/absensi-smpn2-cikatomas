@@ -31,6 +31,24 @@ if ($mapel_id) {
     $where[] = "j.mapel_id = ?";
     $params[] = $mapel_id;
 }
+// Query berdasarkan filter
+$where = [];
+$params = [];
+
+if ($kelas_id) {
+    // Gunakan prefix yang sesuai untuk setiap jenis laporan
+    if ($tipe_laporan == 'mapel') {
+        $where[] = "mu.kelas_id = ?";  // Untuk laporan mapel
+    } else {
+        $where[] = "m.kelas_id = ?";   // Untuk laporan harian/kelas
+    }
+    $params[] = $kelas_id;
+}
+
+if ($mapel_id) {
+    $where[] = "j.mapel_id = ?";
+    $params[] = $mapel_id;
+}
 
 $where[] = "DATE_FORMAT(a.tanggal, '%Y-%m') = ?";
 $params[] = $bulan;
@@ -51,11 +69,8 @@ if ($tipe_laporan == 'harian') {
             $where_clause
             GROUP BY a.tanggal
             ORDER BY a.tanggal DESC";
-
-    $stmt = $pdo->prepare($sql);
-    $stmt->execute($params);
-    $laporan = $stmt->fetchAll();
 }
+
 // Laporan Per Mata Pelajaran
 elseif ($tipe_laporan == 'mapel') {
     $sql = "SELECT m.nama_mapel,
@@ -67,14 +82,12 @@ elseif ($tipe_laporan == 'mapel') {
             FROM absensi a
             JOIN jadwal_pelajaran j ON a.jadwal_id = j.jadwal_id
             JOIN mata_pelajaran m ON j.mapel_id = m.mapel_id
+            JOIN murid mu ON a.murid_id = mu.murid_id
             $where_clause
             GROUP BY m.mapel_id
             ORDER BY m.nama_mapel";
-
-    $stmt = $pdo->prepare($sql);
-    $stmt->execute($params);
-    $laporan = $stmt->fetchAll();
 }
+
 // Laporan Per Kelas
 elseif ($tipe_laporan == 'kelas') {
     $sql = "SELECT k.nama_kelas,
@@ -89,11 +102,12 @@ elseif ($tipe_laporan == 'kelas') {
             $where_clause
             GROUP BY k.kelas_id
             ORDER BY k.nama_kelas";
-
-    $stmt = $pdo->prepare($sql);
-    $stmt->execute($params);
-    $laporan = $stmt->fetchAll();
 }
+
+$stmt = $pdo->prepare($sql);
+$stmt->execute($params);
+$laporan = $stmt->fetchAll();
+
 
 // Untuk select kelas dan mapel di form
 $selected_kelas = $kelas_id;
