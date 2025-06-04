@@ -82,22 +82,22 @@ $kelas_options = $stmt->fetchAll();
             </header>
 
             <div class="page-heading">
-                <h3>Judul Halaman!</h3>
+                <h3>ABSENSI</h3>
             </div>
             <div class="page-content">
                 <section class="row">
                     <!-- Main content start -->
 
                     <!-- Filter Form -->
-                    <div class="card mb-4">
-                        <div class="card-header mb-3">
+                    <div class="card mb-4 shadow-sm border">
+                        <div class="card-header fw-bold">
                             Filter Absensi
                         </div>
-                        <div class="card-body">
-                            <form method="get" class="row g-3">
+                        <div class="card-body py-3">
+                            <form method="get" class="row g-2 align-items-end">
                                 <div class="col-md-3">
-                                    <label for="mapel_id" class="form-label">Mata Pelajaran</label>
-                                    <select id="mapel_id" name="mapel_id" class="form-select">
+                                    <label for="mapel_id" class="form-label mb-1">Mapel</label>
+                                    <select id="mapel_id" name="mapel_id" class="form-select form-select-sm">
                                         <option value="">Semua Mapel</option>
                                         <?php foreach ($mapel_options as $mapel): ?>
                                             <option value="<?= $mapel['mapel_id'] ?>" <?= $mapel_id == $mapel['mapel_id'] ? 'selected' : '' ?>>
@@ -108,8 +108,8 @@ $kelas_options = $stmt->fetchAll();
                                 </div>
 
                                 <div class="col-md-3">
-                                    <label for="kelas_id" class="form-label">Kelas</label>
-                                    <select id="kelas_id" name="kelas_id" class="form-select">
+                                    <label for="kelas_id" class="form-label mb-1">Kelas</label>
+                                    <select id="kelas_id" name="kelas_id" class="form-select form-select-sm">
                                         <option value="">Semua Kelas</option>
                                         <?php foreach ($kelas_options as $kelas): ?>
                                             <option value="<?= $kelas['kelas_id'] ?>" <?= $kelas_id == $kelas['kelas_id'] ? 'selected' : '' ?>>
@@ -120,59 +120,57 @@ $kelas_options = $stmt->fetchAll();
                                 </div>
 
                                 <div class="col-md-2">
-                                    <label for="tanggal_mulai" class="form-label">Tanggal Mulai</label>
-                                    <input type="date" id="tanggal_mulai" name="tanggal_mulai"
-                                        value="<?= htmlspecialchars($tanggal_mulai) ?>" class="form-control">
+                                    <label for="tanggal_mulai" class="form-label mb-1">Mulai</label>
+                                    <input type="date" id="tanggal_mulai" name="tanggal_mulai" value="<?= htmlspecialchars($tanggal_mulai) ?>" class="form-control form-control-sm">
                                 </div>
 
                                 <div class="col-md-2">
-                                    <label for="tanggal_selesai" class="form-label">Tanggal Selesai</label>
-                                    <input type="date" id="tanggal_selesai" name="tanggal_selesai"
-                                        value="<?= htmlspecialchars($tanggal_selesai) ?>" class="form-control">
+                                    <label for="tanggal_selesai" class="form-label mb-1">Selesai</label>
+                                    <input type="date" id="tanggal_selesai" name="tanggal_selesai" value="<?= htmlspecialchars($tanggal_selesai) ?>" class="form-control form-control-sm">
                                 </div>
 
-                                <div class="col-md-2 d-flex align-items-end">
-                                    <button type="submit" class="btn btn-primary w-100">
-                                        <i class="fas fa-search me-1"></i> Filter
+                                <div class="col-md-2">
+                                    <button type="submit" class="btn btn-sm btn-primary w-100">
+                                        <i class="fas fa-filter me-1"></i> Filter
                                     </button>
                                 </div>
                             </form>
                         </div>
                     </div>
 
+
                     <!-- Tabel Absensi -->
-                    <div class="card">
-                        <div class="card-header d-flex justify-content-between align-items-center  mb-3">
-                            <span>Data Absensi</span>
-                            <a href="input.php" class="btn btn-primary">
-                                Input Baru
-                            </a>
+                    <div class="card shadow-sm">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h6 class="mb-0">Data Absensi</h6>
                         </div>
 
                         <div class="card-body">
                             <?php if (empty($absensi)): ?>
-                                <div class="alert alert-info">Tidak ada data absensi untuk filter yang dipilih.</div>
+                                <div class="alert alert-info mb-0">Tidak ada data absensi untuk filter yang dipilih.</div>
                             <?php else: ?>
                                 <div class="table-responsive">
-                                    <table class="table table-striped table-hover">
-                                        <thead>
+                                    <table class="table table-sm table-bordered table-hover align-middle text-center">
+                                        <thead class="table-light">
                                             <tr>
+                                                <th>No</th>
                                                 <th>Tanggal</th>
                                                 <th>Hari</th>
                                                 <th>Mapel</th>
                                                 <th>Kelas</th>
                                                 <th>NIS</th>
-                                                <th>Nama Siswa</th>
+                                                <th>Nama</th>
                                                 <th>Status</th>
                                                 <th>Keterangan</th>
                                                 <th>Aksi</th>
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            <?php foreach ($absensi as $a): ?>
+                                            <?php foreach ($absensi as $index => $a): ?>
                                                 <tr>
+                                                    <td><?= $index + 1 ?></td>
                                                     <td><?= date('d/m/Y', strtotime($a['tanggal'])) ?></td>
-                                                    <td><?= $a['hari'] ?></td>
+                                                    <td><?= htmlspecialchars($a['hari']) ?></td>
                                                     <td><?= htmlspecialchars($a['nama_mapel']) ?></td>
                                                     <td><?= htmlspecialchars($a['nama_kelas']) ?></td>
                                                     <td><?= htmlspecialchars($a['nis']) ?></td>
@@ -182,18 +180,18 @@ $kelas_options = $stmt->fetchAll();
                                                         $badge_class = [
                                                             'hadir' => 'bg-success',
                                                             'sakit' => 'bg-info',
-                                                            'izin'  => 'bg-warning',
+                                                            'izin'  => 'bg-warning text-dark',
                                                             'alpha' => 'bg-danger'
                                                         ];
+                                                        $status = strtolower($a['status']);
                                                         ?>
-                                                        <span class="badge <?= $badge_class[$a['status']] ?>">
-                                                            <?= ucfirst($a['status']) ?>
+                                                        <span class="badge <?= $badge_class[$status] ?? 'bg-secondary' ?>">
+                                                            <?= ucfirst($status) ?>
                                                         </span>
                                                     </td>
                                                     <td><?= htmlspecialchars($a['keterangan']) ?></td>
                                                     <td>
-                                                        <a href="edit.php?id=<?= $a['absensi_id'] ?>"
-                                                            class="btn btn-sm btn-outline-primary" title="Edit">
+                                                        <a href="edit.php?id=<?= $a['absensi_id'] ?>" class="btn btn-sm btn-outline-primary" title="Edit">
                                                             <i class="bi bi-pencil-square"></i>
                                                         </a>
                                                     </td>
@@ -205,6 +203,7 @@ $kelas_options = $stmt->fetchAll();
                             <?php endif; ?>
                         </div>
                     </div>
+
 
                     <!-- Main content end -->
                 </section>

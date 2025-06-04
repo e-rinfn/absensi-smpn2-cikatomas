@@ -5,9 +5,11 @@ if (!isGuru()) {
     exit;
 }
 
-// Ambil jadwal yang diajar oleh guru ini
+// Ambil parameter filter
 $jadwal_id = $_GET['jadwal_id'] ?? 0;
 $tanggal = $_GET['tanggal'] ?? date('Y-m-d');
+$status_filter = $_GET['status'] ?? 'all';
+$keyword = $_GET['keyword'] ?? '';
 
 // Validasi apakah guru mengajar jadwal ini
 $stmt = $pdo->prepare("SELECT j.*, k.nama_kelas, m.nama_mapel 
@@ -23,13 +25,31 @@ if (!$jadwal) {
     exit;
 }
 
-// Ambil rekap absensi
-$stmt = $pdo->prepare("SELECT a.*, m.nis, m.nama_lengkap 
-                      FROM absensi a
-                      JOIN murid m ON a.murid_id = m.murid_id
-                      WHERE a.jadwal_id = ? AND a.tanggal = ?
-                      ORDER BY m.nama_lengkap");
-$stmt->execute([$jadwal_id, $tanggal]);
+// Query dasar untuk absensi
+$sql = "SELECT a.*, m.nis, m.nama_lengkap 
+        FROM absensi a
+        JOIN murid m ON a.murid_id = m.murid_id
+        WHERE a.jadwal_id = ? AND a.tanggal = ?";
+
+$params = [$jadwal_id, $tanggal];
+
+// Tambahkan filter status
+if ($status_filter !== 'all') {
+    $sql .= " AND a.status = ?";
+    $params[] = $status_filter;
+}
+
+// Tambahkan filter keyword
+if (!empty($keyword)) {
+    $sql .= " AND (m.nis LIKE ? OR m.nama_lengkap LIKE ?)";
+    $params[] = "%$keyword%";
+    $params[] = "%$keyword%";
+}
+
+$sql .= " ORDER BY m.nama_lengkap";
+
+$stmt = $pdo->prepare($sql);
+$stmt->execute($params);
 $absensi = $stmt->fetchAll();
 
 // Hitung statistik
@@ -57,19 +77,15 @@ foreach ($absensi as $a) {
 }
 ?>
 
-
 <?php include '../../../includes/header.php'; ?>
 
 <body>
     <div id="app">
         <!-- Sidebar start -->
-
         <?php include '../../../includes/navigation/guru.php'; ?>
-
         <!-- Sidebar end -->
 
         <!-- Main start -->
-
         <div id="main">
             <header class="mb-3">
                 <a href="#" class="burger-btn d-block d-xl-none">
@@ -78,12 +94,51 @@ foreach ($absensi as $a) {
             </header>
 
             <div class="page-heading">
-                <h3>Judul Halaman!</h3>
+                <h3>REKAP ABSENSI</h3>
             </div>
             <div class="page-content">
                 <section class="row">
-                    <!-- Main content start -->
+                    <!-- Filter Section -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h4>Filter Data</h4>
+                        </div>
+                        <div class="card-body">
+                            <form method="get" class="row g-3">
+                                <input type="hidden" name="jadwal_id" value="<?= $jadwal_id ?>">
+                                <input type="hidden" name="tanggal" value="<?= $tanggal ?>">
 
+                                <div class="col-md-4">
+                                    <label class="form-label">Status Kehadiran</label>
+                                    <select name="status" class="form-select">
+                                        <option value="all" <?= $status_filter == 'all' ? 'selected' : '' ?>>Semua Status</option>
+                                        <option value="hadir" <?= $status_filter == 'hadir' ? 'selected' : '' ?>>Hadir</option>
+                                        <option value="sakit" <?= $status_filter == 'sakit' ? 'selected' : '' ?>>Sakit</option>
+                                        <option value="izin" <?= $status_filter == 'izin' ? 'selected' : '' ?>>Izin</option>
+                                        <option value="alpha" <?= $status_filter == 'alpha' ? 'selected' : '' ?>>Alpha</option>
+                                    </select>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label">Cari NIS/Nama Murid</label>
+                                    <input type="text" name="keyword" class="form-control"
+                                        placeholder="Masukkan NIS atau nama murid" value="<?= htmlspecialchars($keyword) ?>">
+                                </div>
+
+                                <div class="col-md-2 d-flex align-items-end">
+                                    <button type="submit" class="btn btn-primary me-2">
+                                        <i class="fas fa-filter"></i> Filter
+                                    </button>
+                                    <a href="rekap.php?jadwal_id=<?= $jadwal_id ?>&tanggal=<?= $tanggal ?>"
+                                        class="btn btn-secondary">
+                                        <i class="fas fa-sync"></i> Reset
+                                    </a>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Jadwal and Stats Card -->
                     <div class="card mb-4">
                         <div class="card-header">
                             <h4><?= htmlspecialchars($jadwal['nama_mapel']) ?> - <?= htmlspecialchars($jadwal['nama_kelas']) ?></h4>
@@ -102,19 +157,26 @@ foreach ($absensi as $a) {
                                         <p>Sakit: <?= $sakit ?> murid</p>
                                         <p>Izin: <?= $izin ?> murid</p>
                                         <p>Alpha: <?= $alpha ?> murid</p>
+                                        <p>Total: <?= $total_murid ?> murid</p>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
 
+                    <!-- Daftar Absensi -->
                     <div class="card">
-                        <div class="card-header">
+                        <div class="card-header d-flex justify-content-between align-items-center">
                             <h5>Daftar Absensi Murid</h5>
+                            <div>
+                                <span class="badge bg-primary">
+                                    Total Data: <?= $total_murid ?>
+                                </span>
+                            </div>
                         </div>
                         <div class="card-body">
                             <?php if (empty($absensi)): ?>
-                                <div class="alert alert-warning">Belum ada data absensi untuk tanggal ini.</div>
+                                <div class="alert alert-warning">Tidak ada data absensi yang sesuai dengan filter.</div>
                             <?php else: ?>
                                 <div class="table-responsive">
                                     <table class="table table-bordered table-hover">
@@ -154,29 +216,16 @@ foreach ($absensi as $a) {
                             <i class="fas fa-arrow-left"></i> Kembali ke Jadwal
                         </a>
                     </div>
-
-                    <!-- Main content end -->
                 </section>
             </div>
         </div>
-
         <!-- Main end -->
     </div>
 
-
-    <!-- Javascript add start -->
-
-    <!-- your javascript code here -->
-
-    <!-- Javascript add end -->
-
-    <!-- Javascript template mazer start -->
+    <!-- Javascript -->
     <script src="<?= $base_url ?>/assets/vendors/perfect-scrollbar/perfect-scrollbar.min.js"></script>
     <script src="<?= $base_url ?>/assets/js/bootstrap.bundle.min.js"></script>
-
     <script src="<?= $base_url ?>/assets/vendors/apexcharts/apexcharts.js"></script>
     <script src="<?= $base_url ?>/assets/js/pages/dashboard.js"></script>
-
     <script src="<?= $base_url ?>/assets/js/main.js"></script>
-    <!-- Javascrip template mazer end -->
 </body>

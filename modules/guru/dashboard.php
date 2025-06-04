@@ -1,5 +1,8 @@
 <?php
 require_once __DIR__ . '/../../includes/auth.php';
+date_default_timezone_set('Asia/Jakarta');
+
+
 if (!isGuru()) {
     header('Location: /sis-absensi-smp/login.php');
     exit;
@@ -51,39 +54,39 @@ $jadwal_hari_ini = $stmt->fetchAll();
             </header>
 
             <div class="page-heading">
-                <h3>Judul Halaman!</h3>
+                <h3>DASHBOARD GURU</h3>
             </div>
             <div class="page-content">
                 <section class="row">
                     <!-- Main content start -->
 
-                    <div class="row mb-4">
+                    <div class="row mb-3">
                         <div class="col-md-6">
-                            <div class="card">
-                                <div class="card-body">
-                                    <h5 class="card-title">Kelas yang Diajar</h5>
-                                    <p class="display-4"><?= $total_kelas ?></p>
-                                    <a href="jadwal/" class="btn btn-primary">Lihat Jadwal</a>
+                            <div class="card shadow-sm border-start border-4 border-primary">
+                                <div class="card-body p-3">
+                                    <h6 class="card-title text-muted mb-1">Kelas yang Diajar</h6>
+                                    <p class="h3 mb-0"><?= $total_kelas ?></p>
                                 </div>
                             </div>
                         </div>
                         <div class="col-md-6">
-                            <div class="card">
-                                <div class="card-body">
-                                    <h5 class="card-title">Mata Pelajaran</h5>
-                                    <p class="display-4"><?= $total_mapel ?></p>
+                            <div class="card shadow-sm border-start border-4 border-success">
+                                <div class="card-body p-3">
+                                    <h6 class="card-title text-muted mb-1">Mata Pelajaran</h6>
+                                    <p class="h3 mb-0"><?= $total_mapel ?></p>
                                 </div>
                             </div>
                         </div>
                     </div>
 
+
                     <div class="card">
                         <div class="card-header bg-primary text-white">
-                            <h4>Jadwal Mengajar Hari Ini (<?= $nama_hari ?>)</h4>
+                            <h4 class="text-white">Jadwal Mengajar Hari Ini (<?= $nama_hari ?>)</h4>
                         </div>
                         <div class="card-body">
                             <?php if (empty($jadwal_hari_ini)): ?>
-                                <div class="alert alert-info">Tidak ada jadwal mengajar hari ini.</div>
+                                <div class="alert alert-warning mt-3 text-dark">Tidak ada jadwal mengajar hari ini.</div>
                             <?php else: ?>
                                 <div class="table-responsive">
                                     <table class="table table-hover">

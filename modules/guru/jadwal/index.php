@@ -24,6 +24,21 @@ $jadwal_per_hari = [];
 foreach ($jadwal as $j) {
     $jadwal_per_hari[$j['hari']][] = $j;
 }
+
+// Daftar hari dalam bahasa Indonesia
+$hari_indonesia = [
+    'Monday' => 'Senin',
+    'Tuesday' => 'Selasa',
+    'Wednesday' => 'Rabu',
+    'Thursday' => 'Kamis',
+    'Friday' => 'Jumat',
+    'Saturday' => 'Sabtu',
+    'Sunday' => 'Minggu'
+];
+
+// Dapatkan hari ini dalam format Indonesia
+$hari_ini = $hari_indonesia[date('l')];
+$tanggal_hari_ini = date('Y-m-d');
 ?>
 
 
@@ -47,7 +62,7 @@ foreach ($jadwal as $j) {
             </header>
 
             <div class="page-heading">
-                <h3>Judul Halaman!</h3>
+                <h3>JADWAL MENGAJAR</h3>
             </div>
             <div class="page-content">
                 <section class="row">
@@ -56,55 +71,58 @@ foreach ($jadwal as $j) {
                     <?php if (empty($jadwal_per_hari)): ?>
                         <div class="alert alert-info">Anda belum memiliki jadwal mengajar.</div>
                     <?php else: ?>
-                        <div class="accordion" id="jadwalAccordion">
-                            <?php foreach ($jadwal_per_hari as $hari => $jadwal_hari): ?>
-                                <div class="card">
-                                    <div class="card-header" id="heading<?= $hari ?>">
-                                        <h2 class="mb-0">
-                                            <button class="btn btn-link btn-block text-left" type="button" data-toggle="collapse" data-target="#collapse<?= $hari ?>" aria-expanded="true" aria-controls="collapse<?= $hari ?>">
-                                                <?= $hari ?>
-                                            </button>
-                                        </h2>
-                                    </div>
+                        <?php foreach ($jadwal_per_hari as $hari => $jadwal_hari): ?>
+                            <div class="card mb-3 shadow-sm">
+                                <div class="card-header bg-primary text-white">
+                                    <h6 class="mb-0 text-white"><?= htmlspecialchars($hari) ?></h6>
+                                </div>
+                                <div class="card-body p-2">
+                                    <div class="table-responsive">
+                                        <table class="table table-sm table-bordered table-hover mb-0 align-middle text-center">
+                                            <thead class="table-light">
+                                                <tr>
+                                                    <th>Jam</th>
+                                                    <th>Mata Pelajaran</th>
+                                                    <th>Kelas</th>
+                                                    <th>Aksi</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <?php foreach ($jadwal_hari as $j): ?>
+                                                    <?php
+                                                    // Cek apakah hari jadwal sama dengan hari ini
+                                                    $is_hari_ini = ($j['hari'] === $hari_ini);
+                                                    ?>
+                                                    <tr>
+                                                        <td><?= date('H:i', strtotime($j['jam_mulai'])) ?> - <?= date('H:i', strtotime($j['jam_selesai'])) ?></td>
+                                                        <td><?= htmlspecialchars($j['nama_mapel']) ?></td>
+                                                        <td><?= htmlspecialchars($j['nama_kelas']) ?></td>
+                                                        <td>
+                                                            <?php if ($is_hari_ini): ?>
+                                                                <a href="../absensi/input.php?jadwal_id=<?= $j['jadwal_id'] ?>&tanggal=<?= $tanggal_hari_ini ?>"
+                                                                    class="btn btn-sm btn-primary" title="Input Absensi">
+                                                                    <i class="fas fa-clipboard-check"></i> Absensi
+                                                                </a>
+                                                            <?php else: ?>
+                                                                <button class="btn btn-sm btn-outline-secondary" disabled title="Hanya bisa diakses pada hari <?= $j['hari'] ?>">
+                                                                    <i class="fas fa-clipboard-check"></i> Absensi
+                                                                </button>
+                                                            <?php endif; ?>
 
-                                    <div id="collapse<?= $hari ?>" class="collapse show" aria-labelledby="heading<?= $hari ?>" data-parent="#jadwalAccordion">
-                                        <div class="card-body">
-                                            <div class="table-responsive">
-                                                <table class="table table-hover">
-                                                    <thead>
-                                                        <tr>
-                                                            <th>Jam</th>
-                                                            <th>Mata Pelajaran</th>
-                                                            <th>Kelas</th>
-                                                            <th>Aksi</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        <?php foreach ($jadwal_hari as $j): ?>
-                                                            <tr>
-                                                                <td><?= date('H:i', strtotime($j['jam_mulai'])) ?> - <?= date('H:i', strtotime($j['jam_selesai'])) ?></td>
-                                                                <td><?= htmlspecialchars($j['nama_mapel']) ?></td>
-                                                                <td><?= htmlspecialchars($j['nama_kelas']) ?></td>
-                                                                <td>
-                                                                    <a href="../absensi/input.php?jadwal_id=<?= $j['jadwal_id'] ?>"
-                                                                        class="btn btn-sm btn-primary">
-                                                                        <i class="fas fa-clipboard-check"></i> Absensi
-                                                                    </a>
-                                                                    <a href="../absensi/rekap.php?jadwal_id=<?= $j['jadwal_id'] ?>"
-                                                                        class="btn btn-sm btn-secondary">
-                                                                        <i class="fas fa-chart-bar"></i> Rekap
-                                                                    </a>
-                                                                </td>
-                                                            </tr>
-                                                        <?php endforeach; ?>
-                                                    </tbody>
-                                                </table>
-                                            </div>
-                                        </div>
+                                                            <a href="../absensi/rekap.php?jadwal_id=<?= $j['jadwal_id'] ?>"
+                                                                class="btn btn-sm btn-secondary" title="Lihat Rekap">
+                                                                <i class="fas fa-chart-bar"></i> Rekap
+                                                            </a>
+                                                        </td>
+                                                    </tr>
+                                                <?php endforeach; ?>
+                                            </tbody>
+                                        </table>
                                     </div>
                                 </div>
-                            <?php endforeach; ?>
-                        </div>
+                            </div>
+                        <?php endforeach; ?>
+
                     <?php endif; ?>
 
                     <!-- Main content end -->

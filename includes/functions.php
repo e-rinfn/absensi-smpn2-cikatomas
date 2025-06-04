@@ -5,6 +5,9 @@
  */
 
 // Format tanggal Indonesia
+
+date_default_timezone_set('Asia/Jakarta');
+
 function indonesian_date($date)
 {
     $months = [

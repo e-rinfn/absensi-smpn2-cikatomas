@@ -69,7 +69,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </header>
 
             <div class="page-heading">
-                <h3>Judul Halaman!</h3>
+                <h3>EDIT ABSENSI</h3>
             </div>
             <div class="page-content">
                 <section class="row">
@@ -80,43 +80,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <?php unset($_SESSION['error']); ?>
                     <?php endif; ?>
 
-                    <div class="card mb-4">
-                        <div class="card-header">
-                            <i class="fas fa-info-circle me-2"></i>Informasi Absensi
+                    <div class="card mb-3 shadow-sm">
+                        <div class="card-header d-flex align-items-center">
+                            <span>Informasi Absensi</span>
                         </div>
-                        <div class="card-body">
-                            <div class="row mb-3">
-                                <div class="col-md-3 fw-bold">Tanggal</div>
-                                <div class="col-md-9"><?= date('d/m/Y', strtotime($absensi['tanggal'])) ?></div>
-                            </div>
-                            <div class="row mb-3">
-                                <div class="col-md-3 fw-bold">Hari/Jam</div>
-                                <div class="col-md-9"><?= $absensi['hari'] ?>, <?= date('H:i', strtotime($absensi['jam_mulai'])) ?>-<?= date('H:i', strtotime($absensi['jam_selesai'])) ?></div>
-                            </div>
-                            <div class="row mb-3">
-                                <div class="col-md-3 fw-bold">Mata Pelajaran</div>
-                                <div class="col-md-9"><?= htmlspecialchars($absensi['nama_mapel']) ?></div>
-                            </div>
-                            <div class="row mb-3">
-                                <div class="col-md-3 fw-bold">Kelas</div>
-                                <div class="col-md-9"><?= htmlspecialchars($absensi['nama_kelas']) ?></div>
-                            </div>
-                            <div class="row mb-3">
-                                <div class="col-md-3 fw-bold">Siswa</div>
-                                <div class="col-md-9"><?= htmlspecialchars($absensi['nis']) ?> - <?= htmlspecialchars($absensi['nama_lengkap']) ?></div>
-                            </div>
+                        <div class="card-body p-3">
+                            <dl class="row mb-0">
+                                <dt class="col-4 col-md-3 fw-semibold">Tanggal</dt>
+                                <dd class="col-8 col-md-9"><?= date('d/m/Y', strtotime($absensi['tanggal'])) ?></dd>
+
+                                <dt class="col-4 col-md-3 fw-semibold">Hari / Jam</dt>
+                                <dd class="col-8 col-md-9"><?= htmlspecialchars($absensi['hari']) ?>, <?= date('H:i', strtotime($absensi['jam_mulai'])) ?> - <?= date('H:i', strtotime($absensi['jam_selesai'])) ?></dd>
+
+                                <dt class="col-4 col-md-3 fw-semibold">Mata Pelajaran</dt>
+                                <dd class="col-8 col-md-9"><?= htmlspecialchars($absensi['nama_mapel']) ?></dd>
+
+                                <dt class="col-4 col-md-3 fw-semibold">Kelas</dt>
+                                <dd class="col-8 col-md-9"><?= htmlspecialchars($absensi['nama_kelas']) ?></dd>
+
+                                <dt class="col-4 col-md-3 fw-semibold">Siswa</dt>
+                                <dd class="col-8 col-md-9"><?= htmlspecialchars($absensi['nis']) ?> - <?= htmlspecialchars($absensi['nama_lengkap']) ?></dd>
+                            </dl>
                         </div>
                     </div>
 
-                    <div class="card">
-                        <div class="card-header">
-                            <i class="fas fa-edit me-2"></i>Form Edit
+
+                    <div class="card shadow-sm border-0 mb-4">
+                        <div class="card-header fw-semibold">
+                            <i class="fas fa-edit me-2"></i>Edit Absensi
                         </div>
-                        <div class="card-body">
+                        <div class="card-body py-3">
                             <form method="POST">
-                                <div class="mb-3">
-                                    <label for="status" class="form-label">Status Absensi</label>
-                                    <select class="form-select" id="status" name="status" required>
+                                <div class="mb-2">
+                                    <label for="status" class="form-label mb-1">Status</label>
+                                    <select class="form-select form-select-sm" id="status" name="status" required>
                                         <option value="hadir" <?= $absensi['status'] == 'hadir' ? 'selected' : '' ?>>Hadir</option>
                                         <option value="sakit" <?= $absensi['status'] == 'sakit' ? 'selected' : '' ?>>Sakit</option>
                                         <option value="izin" <?= $absensi['status'] == 'izin' ? 'selected' : '' ?>>Izin</option>
@@ -125,21 +122,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 </div>
 
                                 <div class="mb-3">
-                                    <label for="keterangan" class="form-label">Keterangan</label>
-                                    <textarea class="form-control" id="keterangan" name="keterangan" rows="3"><?= htmlspecialchars($absensi['keterangan']) ?></textarea>
+                                    <label for="keterangan" class="form-label mb-1">Keterangan</label>
+                                    <textarea class="form-control form-control-sm" id="keterangan" name="keterangan" rows="2"><?= htmlspecialchars($absensi['keterangan']) ?></textarea>
                                 </div>
 
                                 <div class="d-flex justify-content-between">
-                                    <a href="index.php" class="btn btn-secondary">
+                                    <a href="index.php" class="btn btn-sm btn-outline-secondary">
                                         <i class="fas fa-arrow-left me-1"></i> Kembali
                                     </a>
-                                    <button type="submit" class="btn btn-primary">
-                                        <i class="fas fa-save me-1"></i> Simpan Perubahan
+                                    <button type="submit" class="btn btn-sm btn-primary">
+                                        <i class="fas fa-save me-1"></i> Simpan
                                     </button>
                                 </div>
                             </form>
                         </div>
                     </div>
+
 
                     <!-- Main content end -->
                 </section>

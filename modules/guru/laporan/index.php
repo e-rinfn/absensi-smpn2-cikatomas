@@ -101,21 +101,21 @@ foreach ($rekap as $r) {
             </header>
 
             <div class="page-heading">
-                <h3>Judul Halaman!</h3>
+                <h3>LAPORAN</h3>
             </div>
             <div class="page-content">
                 <section class="row">
                     <!-- Main content start -->
 
-                    <div class="card mb-4">
+                    <div class="card mb-4 shadow-sm">
                         <div class="card-header">
-                            <h4>Filter Laporan</h4>
+                            <h6 class="mb-0">Filter Laporan</h6>
                         </div>
                         <div class="card-body">
-                            <form method="GET" class="form-inline">
-                                <div class="form-group mr-3">
-                                    <label for="kelas_id" class="mr-2">Kelas:</label>
-                                    <select name="kelas_id" id="kelas_id" class="form-control">
+                            <form method="GET" class="row g-2 align-items-end">
+                                <div class="col-md-3">
+                                    <label for="kelas_id" class="form-label">Kelas</label>
+                                    <select name="kelas_id" id="kelas_id" class="form-select">
                                         <option value="">Semua Kelas</option>
                                         <?php foreach ($kelas as $k): ?>
                                             <option value="<?= $k['kelas_id'] ?>" <?= ($k['kelas_id'] == $kelas_id) ? 'selected' : '' ?>>
@@ -125,9 +125,9 @@ foreach ($rekap as $r) {
                                     </select>
                                 </div>
 
-                                <div class="form-group mr-3">
-                                    <label for="mapel_id" class="mr-2">Mata Pelajaran:</label>
-                                    <select name="mapel_id" id="mapel_id" class="form-control">
+                                <div class="col-md-3">
+                                    <label for="mapel_id" class="form-label">Mata Pelajaran</label>
+                                    <select name="mapel_id" id="mapel_id" class="form-select">
                                         <option value="">Semua Mapel</option>
                                         <?php foreach ($mapel as $m): ?>
                                             <option value="<?= $m['mapel_id'] ?>" <?= ($m['mapel_id'] == $mapel_id) ? 'selected' : '' ?>>
@@ -137,75 +137,77 @@ foreach ($rekap as $r) {
                                     </select>
                                 </div>
 
-                                <div class="form-group mr-3">
-                                    <label for="bulan" class="mr-2">Bulan:</label>
-                                    <input type="month" name="bulan" id="bulan" class="form-control"
-                                        value="<?= $bulan ?>">
+                                <div class="col-md-3">
+                                    <label for="bulan" class="form-label">Bulan</label>
+                                    <input type="month" name="bulan" id="bulan" class="form-control" value="<?= $bulan ?>">
                                 </div>
 
-                                <button type="submit" class="btn btn-primary mr-2">
-                                    <i class="fas fa-filter"></i> Filter
-                                </button>
-                                <a href="index.php" class="btn btn-secondary">
-                                    <i class="fas fa-sync-alt"></i> Reset
-                                </a>
+                                <div class="col-md-3 d-flex gap-2">
+                                    <button type="submit" class="btn btn-primary w-100">
+                                        <i class="fas fa-filter me-1"></i> Filter
+                                    </button>
+                                    <a href="index.php" class="btn btn-secondary w-100">
+                                        <i class="fas fa-sync-alt me-1"></i> Reset
+                                    </a>
+                                </div>
                             </form>
                         </div>
                     </div>
 
-                    <div class="card mb-4">
+
+                    <div class="card mb-4 shadow-sm">
                         <div class="card-header">
-                            <h4>Statistik Absensi</h4>
+                            <h5 class="mb-0">Statistik Absensi</h5>
                         </div>
-                        <div class="card-body">
-                            <div class="row">
-                                <div class="col-md-3">
-                                    <div class="alert alert-success text-center">
-                                        <h5 class="text-white">Hadir</h5>
-                                        <p class="display-4"><?= $total_hadir ?></p>
+                        <div class="card-body py-3">
+                            <div class="row text-center g-2">
+                                <div class="col-6 col-md-3">
+                                    <div class="p-2 rounded text-white bg-success">
+                                        <h6 class="mb-1">Hadir</h6>
+                                        <p class="h3 mb-0"><?= $total_hadir ?></p>
                                     </div>
                                 </div>
-                                <div class="col-md-3">
-                                    <div class="alert alert-warning text-center">
-                                        <h5 class="text-white">Sakit</h5>
-                                        <p class="display-4"><?= $total_sakit ?></p>
+                                <div class="col-6 col-md-3">
+                                    <div class="p-2 rounded text-dark bg-warning">
+                                        <h6 class="mb-1">Sakit</h6>
+                                        <p class="h3 mb-0"><?= $total_sakit ?></p>
                                     </div>
                                 </div>
-                                <div class="col-md-3">
-                                    <div class="alert alert-info text-center">
-                                        <h5 class="text-white">Izin</h5>
-                                        <p class="display-4"><?= $total_izin ?></p>
+                                <div class="col-6 col-md-3">
+                                    <div class="p-2 rounded text-white bg-info">
+                                        <h6 class="mb-1">Izin</h6>
+                                        <p class="h3 mb-0"><?= $total_izin ?></p>
                                     </div>
                                 </div>
-                                <div class="col-md-3">
-                                    <div class="alert alert-danger text-center">
-                                        <h5 class="text-white">Alpha</h5>
-                                        <p class="display-4"><?= $total_alpha ?></p>
+                                <div class="col-6 col-md-3">
+                                    <div class="p-2 rounded text-white bg-danger">
+                                        <h6 class="mb-1">Alpha</h6>
+                                        <p class="h3 mb-0"><?= $total_alpha ?></p>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <div class="card">
+                    <div class="card shadow-sm">
                         <div class="card-header">
-                            <h4>Detail Absensi</h4>
+                            <h5 class="mb-0">Detail Absensi</h5>
                         </div>
-                        <div class="card-body">
+                        <div class="card-body p-3">
                             <?php if (empty($rekap)): ?>
-                                <div class="alert alert-warning">Tidak ada data absensi untuk filter yang dipilih.</div>
+                                <div class="alert alert-warning mb-0">Tidak ada data absensi untuk filter yang dipilih.</div>
                             <?php else: ?>
                                 <div class="table-responsive">
-                                    <table class="table table-bordered table-hover">
-                                        <thead class="thead-light">
+                                    <table class="table table-sm table-bordered table-hover align-middle text-center mb-2">
+                                        <thead class="table-light">
                                             <tr>
                                                 <th>Tanggal</th>
-                                                <th>Mata Pelajaran</th>
+                                                <th>Mapel</th>
                                                 <th>Kelas</th>
-                                                <th>Hadir</th>
-                                                <th>Sakit</th>
-                                                <th>Izin</th>
-                                                <th>Alpha</th>
+                                                <th class="text-success">Hadir</th>
+                                                <th class="text-warning">Sakit</th>
+                                                <th class="text-info">Izin</th>
+                                                <th class="text-danger">Alpha</th>
                                                 <th>Total</th>
                                             </tr>
                                         </thead>
@@ -215,10 +217,10 @@ foreach ($rekap as $r) {
                                                     <td><?= date('d/m/Y', strtotime($r['tanggal'])) ?></td>
                                                     <td><?= htmlspecialchars($r['nama_mapel']) ?></td>
                                                     <td><?= htmlspecialchars($r['nama_kelas']) ?></td>
-                                                    <td class="text-success"><?= $r['hadir'] ?></td>
-                                                    <td class="text-warning"><?= $r['sakit'] ?></td>
-                                                    <td class="text-info"><?= $r['izin'] ?></td>
-                                                    <td class="text-danger"><?= $r['alpha'] ?></td>
+                                                    <td><?= $r['hadir'] ?></td>
+                                                    <td><?= $r['sakit'] ?></td>
+                                                    <td><?= $r['izin'] ?></td>
+                                                    <td><?= $r['alpha'] ?></td>
                                                     <td><strong><?= $r['total'] ?></strong></td>
                                                 </tr>
                                             <?php endforeach; ?>
@@ -226,14 +228,15 @@ foreach ($rekap as $r) {
                                     </table>
                                 </div>
 
-                                <div class="mt-3">
-                                    <a href="export.php?<?= http_build_query($_GET) ?>" class="btn btn-success">
+                                <!-- <div class="text-end">
+                                    <a href="export.php?<?= http_build_query($_GET) ?>" class="btn btn-sm btn-success">
                                         <i class="fas fa-file-excel"></i> Export ke Excel
                                     </a>
-                                </div>
+                                </div> -->
                             <?php endif; ?>
                         </div>
                     </div>
+
 
                     <!-- Main content end -->
                 </section>

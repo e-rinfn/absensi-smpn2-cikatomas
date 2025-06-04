@@ -1,5 +1,7 @@
 <?php
 require_once __DIR__ . '../../../config/config.php';
+date_default_timezone_set('Asia/Jakarta');
+
 
 $current_uri = $_SERVER['REQUEST_URI'];
 

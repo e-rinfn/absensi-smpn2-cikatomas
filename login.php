@@ -219,7 +219,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
         <div class="right-panel">
             <div class="login-box">
-                <img src="./assets/images/Logo.png" alt="Logo" class="logo">
+                <img src="assets/images/Logo.png" alt="Logo" class="logo">
                 <h3>Login Sistem Absensi</h3>
                 <?php if ($error): ?>
                     <div class="alert alert-danger"><?= htmlspecialchars($error) ?></div>
