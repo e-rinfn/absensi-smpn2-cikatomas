@@ -77,6 +77,13 @@ $current_date = date('d F Y'); // Format tanggal: 01 January 2023
                     </a>
                 </li>
 
+                <li class="sidebar-item <?= isActive('/guru/profil') ?>">
+                    <a href="<?= $base_url ?>modules/guru/profil/index.php" class="sidebar-link d-flex align-items-center">
+                        <i class="bi bi-file-bar-graph-fill me-2"></i>
+                        <span>Profil</span>
+                    </a>
+                </li>
+
 
                 <li class="sidebar-title text-uppercase text-muted small fw-bold mt-4 ps-3">
                     Group Menu 3
