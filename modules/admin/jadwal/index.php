@@ -5,18 +5,45 @@ if (!isAdmin()) {
     exit;
 }
 
-// Ambil data jadwal beserta relasinya
-$stmt = $pdo->prepare("SELECT j.*, k.nama_kelas, m.nama_mapel, u.full_name AS nama_guru 
-                      FROM jadwal_pelajaran j
-                      JOIN kelas k ON j.kelas_id = k.kelas_id
-                      JOIN mata_pelajaran m ON j.mapel_id = m.mapel_id
-                      JOIN users u ON j.guru_id = u.user_id
-                      ORDER BY j.hari, j.jam_mulai");
-$stmt->execute();
+// Search functionality
+$search_raw = isset($_GET['search']) ? trim($_GET['search']) : '';
+$search_sql = '%' . $search_raw . '%';
+
+// Query untuk mengambil data jadwal pelajaran dengan kondisi search
+$sql = "SELECT j.*, k.nama_kelas, m.nama_mapel, u.full_name AS nama_guru 
+        FROM jadwal_pelajaran j
+        JOIN kelas k ON j.kelas_id = k.kelas_id
+        JOIN mata_pelajaran m ON j.mapel_id = m.mapel_id
+        JOIN users u ON j.guru_id = u.user_id
+        WHERE k.nama_kelas LIKE :search1 
+           OR m.nama_mapel LIKE :search2 
+           OR u.full_name LIKE :search3
+           OR j.hari LIKE :search4
+           OR j.jam_mulai LIKE :search5
+           OR j.jam_selesai LIKE :search6
+        ORDER BY j.hari, j.jam_mulai";
+
+$stmt = $pdo->prepare($sql);
+$stmt->execute([
+    'search1' => $search_sql,
+    'search2' => $search_sql,
+    'search3' => $search_sql,
+    'search4' => $search_sql,
+    'search5' => $search_sql,
+    'search6' => $search_sql
+]);
 $jadwal = $stmt->fetchAll();
 
-// Urutan hari untuk sorting
-$urutan_hari = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+// Untuk menampilkan hari dalam format Indonesia
+$nama_hari = [
+    'Monday' => 'Senin',
+    'Tuesday' => 'Selasa',
+    'Wednesday' => 'Rabu',
+    'Thursday' => 'Kamis',
+    'Friday' => 'Jumat',
+    'Saturday' => 'Sabtu',
+    'Sunday' => 'Minggu'
+];
 ?>
 
 
@@ -54,49 +81,62 @@ $urutan_hari = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
                     <div class="card mb-4">
                         <div class="card-header d-flex justify-content-between align-items-center">
                             <span>Daftar Jadwal</span>
-                            <a href="tambah.php" class="btn btn-primary btn-sm">Tambah Jadwal</a>
+                            <div class="d-flex align-items-center">
+                                <form method="get" class="d-flex me-2">
+                                    <input type="text" name="search" class="form-control form-control-sm me-2"
+                                        value="<?= htmlspecialchars($search_raw) ?>" placeholder="Cari mata pelajaran...">
+                                    <button type="submit" class="btn btn-outline-secondary btn-sm">Cari</button>
+                                </form>
+                                <a href="index.php" class="btn btn-secondary btn-sm">
+                                    Reset
+                                </a>
+                                <a href="tambah.php" class="btn btn-primary btn-sm ms-3">
+                                    Tambah Jadwal
+                                </a>
+                            </div>
                         </div>
                         <div class="card-body">
-                            <div class="table-responsive">
-                                <table class="table table-striped table-hover">
-                                    <thead>
-                                        <tr>
-                                            <th>Hari</th>
-                                            <th>Mapel</th>
-                                            <th>Kelas</th>
-                                            <th>Guru</th>
-                                            <th>Jam</th>
-                                            <th>Aksi</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <?php foreach ($urutan_hari as $hari): ?>
-                                            <?php foreach ($jadwal as $j): ?>
-                                                <?php if ($j['hari'] == $hari): ?>
-                                                    <tr>
-                                                        <td><?= $j['hari'] ?></td>
-                                                        <td><?= $j['nama_mapel'] ?></td>
-                                                        <td><?= $j['nama_kelas'] ?></td>
-                                                        <td><?= $j['nama_guru'] ?></td>
-                                                        <td>
-                                                            <?= date('H:i', strtotime($j['jam_mulai'])) ?> -
-                                                            <?= date('H:i', strtotime($j['jam_selesai'])) ?>
-                                                        </td>
-                                                        <td>
-                                                            <a href="edit.php?id=<?= $j['jadwal_id'] ?>" class="btn btn-sm btn-warning">
-                                                                <i class="bi bi-pencil-square"></i>
-                                                            </a>
-                                                            <a href="hapus.php?id=<?= $j['jadwal_id'] ?>" class="btn btn-sm btn-danger" onclick="return confirm('Yakin hapus jadwal ini?')">
-                                                                <i class="bi bi-trash"></i>
-                                                            </a>
-                                                        </td>
-                                                    </tr>
-                                                <?php endif; ?>
+                            <?php if (empty($jadwal)): ?>
+                                <div class="alert alert-info">Tidak ada jadwal ditemukan</div>
+                            <?php else: ?>
+                                <div class="table-responsive">
+                                    <table class="table table-striped">
+                                        <thead>
+                                            <tr>
+                                                <th>No</th>
+                                                <th>Hari</th>
+                                                <th>Kelas</th>
+                                                <th>Mata Pelajaran</th>
+                                                <th>Guru</th>
+                                                <th>Jam Mulai</th>
+                                                <th>Jam Selesai</th>
+                                                <th>Aksi</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <?php foreach ($jadwal as $i => $j): ?>
+                                                <tr>
+                                                    <td><?= $i + 1 ?></td>
+                                                    <td><?= $nama_hari[$j['hari']] ?? $j['hari'] ?></td>
+                                                    <td><?= htmlspecialchars($j['nama_kelas']) ?></td>
+                                                    <td><?= htmlspecialchars($j['nama_mapel']) ?></td>
+                                                    <td><?= htmlspecialchars($j['nama_guru']) ?></td>
+                                                    <td><?= htmlspecialchars($j['jam_mulai']) ?></td>
+                                                    <td><?= htmlspecialchars($j['jam_selesai']) ?></td>
+                                                    <td>
+                                                        <a href="edit.php?id=<?= $j['jadwal_id'] ?>" class="btn btn-sm btn-warning">
+                                                            <i class="bi bi-pencil-square"></i>
+                                                        </a>
+                                                        <a href="hapus.php?id=<?= $j['jadwal_id'] ?>" class="btn btn-sm btn-danger" onclick="return confirm('Yakin hapus jadwal ini?')">
+                                                            <i class="bi bi-trash"></i>
+                                                        </a>
+                                                    </td>
+                                                </tr>
                                             <?php endforeach; ?>
-                                        <?php endforeach; ?>
-                                    </tbody>
-                                </table>
-                            </div>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            <?php endif; ?>
                         </div>
                     </div>
 

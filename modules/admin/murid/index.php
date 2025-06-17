@@ -5,54 +5,35 @@ if (!isAdmin()) {
     exit;
 }
 
-// Pagination
-$limit = 10;
-$page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
-$offset = ($page - 1) * $limit;
-
 // Search functionality
-$search = isset($_GET['search']) ? $_GET['search'] : '';
-$where = '';
-$params = [];
+$search_raw = isset($_GET['search']) ? trim($_GET['search']) : '';
+$search_sql = '%' . $search_raw . '%';
 
-if (!empty($search)) {
-    $where = "WHERE m.nis LIKE :search OR m.nama_lengkap LIKE :search OR k.nama_kelas LIKE :search";
-    $params = [':search' => "%$search%"];
-}
+// Query untuk mengambil data murid dengan kondisi search
+$sql = "SELECT m.*, k.nama_kelas, u.full_name AS nama_wali 
+        FROM murid m
+        JOIN kelas k ON m.kelas_id = k.kelas_id
+        LEFT JOIN users u ON m.wali_murid_id = u.user_id
+        WHERE m.nis LIKE :search1 
+           OR m.nama_lengkap LIKE :search2 
+           OR k.nama_kelas LIKE :search3 
+           OR u.full_name LIKE :search4
+        ORDER BY m.nama_lengkap";
 
-// Query untuk mengambil data murid
-$query = "SELECT m.*, k.nama_kelas, u.full_name AS nama_wali 
-          FROM murid m 
-          JOIN kelas k ON m.kelas_id = k.kelas_id 
-          LEFT JOIN users u ON m.wali_murid_id = u.user_id 
-          $where 
-          ORDER BY m.nama_lengkap 
-          LIMIT :limit OFFSET :offset";
-
-$stmt = $pdo->prepare($query);
-foreach ($params as $key => $val) {
-    $stmt->bindValue($key, $val);
-}
-$stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
-$stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
-$stmt->execute();
+$stmt = $pdo->prepare($sql);
+$stmt->execute([
+    ':search1' => $search_sql,
+    ':search2' => $search_sql,
+    ':search3' => $search_sql,
+    ':search4' => $search_sql
+]);
 $murid = $stmt->fetchAll();
 
-// Query untuk total data (pagination)
-$countQuery = "SELECT COUNT(*) FROM murid m $where";
-$stmt = $pdo->prepare($countQuery);
-foreach ($params as $key => $val) {
-    $stmt->bindValue($key, $val);
-}
-$stmt->execute();
-$total = $stmt->fetchColumn();
-$totalPages = ceil($total / $limit);
-
-// Ambil data kelas untuk dropdown filter
-$kelas = $pdo->query("SELECT * FROM kelas ORDER BY nama_kelas")->fetchAll();
-
-// Ambil data wali murid untuk dropdown
-$wali = $pdo->query("SELECT * FROM users WHERE role = 'wali_murid' ORDER BY full_name")->fetchAll();
+// Pagination can be added here if needed
+// $limit = 10;
+// $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+// $offset = ($page - 1) * $limit;
+// Then add LIMIT :limit OFFSET :offset to the query
 ?>
 
 
@@ -95,15 +76,26 @@ $wali = $pdo->query("SELECT * FROM users WHERE role = 'wali_murid' ORDER BY full
                     <div class="card mb-4">
                         <div class="card-header d-flex justify-content-between align-items-center">
                             <span>Daftar Murid</span>
-                            <a href="tambah.php" class="btn btn-primary btn-sm">
-                                Tambah Murid
-                            </a>
+                            <div class="d-flex align-items-center">
+                                <form method="get" class="d-flex me-2">
+                                    <input type="text" name="search" class="form-control form-control-sm me-2"
+                                        value="<?= htmlspecialchars($search_raw) ?>" placeholder="Cari murid...">
+                                    <button type="submit" class="btn btn-outline-secondary btn-sm">Cari</button>
+                                </form>
+                                <a href="index.php" class="btn btn-secondary btn-sm">
+                                    Reset
+                                </a>
+                                <a href="tambah.php" class="btn btn-primary btn-sm ms-3">
+                                    Tambah Murid
+                                </a>
+                            </div>
                         </div>
                         <div class="card-body">
                             <div class="table-responsive">
                                 <table class="table table-striped table-hover">
                                     <thead>
                                         <tr>
+                                            <th>No</th>
                                             <th>NIS</th>
                                             <th>Nama Lengkap</th>
                                             <th>Kelas</th>
@@ -117,8 +109,9 @@ $wali = $pdo->query("SELECT * FROM users WHERE role = 'wali_murid' ORDER BY full
                                                 <td colspan="5" class="text-center">Tidak ada data murid</td>
                                             </tr>
                                         <?php else: ?>
-                                            <?php foreach ($murid as $m): ?>
+                                            <?php foreach ($murid as $i => $m): ?>
                                                 <tr>
+                                                    <td><?= $i + 1 ?></td>
                                                     <td><?= htmlspecialchars($m['nis']) ?></td>
                                                     <td><?= htmlspecialchars($m['nama_lengkap']) ?></td>
                                                     <td><?= htmlspecialchars($m['nama_kelas']) ?></td>

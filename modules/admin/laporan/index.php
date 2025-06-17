@@ -144,17 +144,17 @@ $selected_mapel = $mapel_id;
                     <!-- Filter Form -->
                     <div class="card mb-4">
                         <div class="card-body">
-                            <form method="get" class="row g-3">
+                            <form method="get" class="row g-3" id="filterForm">
                                 <div class="col-md-3">
                                     <label class="form-label">Tipe Laporan</label>
-                                    <select name="tipe" class="form-select">
+                                    <select name="tipe" class="form-select" id="tipeSelect">
                                         <option value="harian" <?= $tipe_laporan == 'harian' ? 'selected' : '' ?>>Harian</option>
                                         <option value="mapel" <?= $tipe_laporan == 'mapel' ? 'selected' : '' ?>>Per Mata Pelajaran</option>
                                         <option value="kelas" <?= $tipe_laporan == 'kelas' ? 'selected' : '' ?>>Per Kelas</option>
                                     </select>
                                 </div>
 
-                                <div class="col-md-3">
+                                <div class="col-md-3" id="kelasField">
                                     <label class="form-label">Kelas</label>
                                     <select name="kelas_id" class="form-select">
                                         <option value="">Semua Kelas</option>
@@ -166,7 +166,7 @@ $selected_mapel = $mapel_id;
                                     </select>
                                 </div>
 
-                                <div class="col-md-3">
+                                <div class="col-md-3" id="mapelField">
                                     <label class="form-label">Mata Pelajaran</label>
                                     <select name="mapel_id" class="form-select">
                                         <option value="">Semua Mapel</option>
@@ -190,6 +190,25 @@ $selected_mapel = $mapel_id;
                         </div>
                     </div>
 
+                    <!-- Script to toggle visibility -->
+                    <script>
+                        function toggleFields() {
+                            const tipe = document.getElementById('tipeSelect').value;
+                            const kelasField = document.getElementById('kelasField');
+                            const mapelField = document.getElementById('mapelField');
+
+                            // Tampilkan sesuai tipe
+                            kelasField.style.display = (tipe === 'kelas') ? 'block' : 'none';
+                            mapelField.style.display = (tipe === 'mapel') ? 'block' : 'none';
+                        }
+
+                        document.addEventListener('DOMContentLoaded', function() {
+                            document.getElementById('tipeSelect').addEventListener('change', toggleFields);
+                            toggleFields(); // jalankan saat pertama kali load halaman
+                        });
+                    </script>
+
+
                     <!-- Tabel Laporan -->
                     <div class="card">
                         <div class="card-body">
@@ -200,6 +219,7 @@ $selected_mapel = $mapel_id;
                                     <table class="table table-striped">
                                         <thead>
                                             <tr>
+                                                <th>No</th>
                                                 <?php if ($tipe_laporan == 'harian'): ?>
                                                     <th>Tanggal</th>
                                                 <?php elseif ($tipe_laporan == 'mapel'): ?>
@@ -216,8 +236,9 @@ $selected_mapel = $mapel_id;
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            <?php foreach ($laporan as $row): ?>
+                                            <?php foreach ($laporan as $i => $row): ?>
                                                 <tr>
+                                                    <td><?= $i + 1 ?></td>
                                                     <td>
                                                         <?php if ($tipe_laporan == 'harian'): ?>
                                                             <?= date('d/m/Y', strtotime($row['tanggal'])) ?>

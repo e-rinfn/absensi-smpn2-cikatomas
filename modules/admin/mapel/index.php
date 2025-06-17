@@ -5,36 +5,30 @@ if (!isAdmin()) {
     exit;
 }
 
-// Pagination
-$limit = 10;
-$page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
-$offset = ($page - 1) * $limit;
+$search_raw = isset($_GET['search']) ? trim($_GET['search']) : '';
+$search_sql = '%' . $search_raw . '%';
 
-// Search functionality
-$search = isset($_GET['search']) ? $_GET['search'] : '';
-$where = '';
-if (!empty($search)) {
-    $where = "WHERE kode_mapel LIKE :search OR nama_mapel LIKE :search";
-}
+// Query untuk mengambil data mata pelajaran dengan kondisi search
+$sql = "SELECT * 
+        FROM mata_pelajaran
+        WHERE nama_mapel LIKE :search1 
+           OR kode_mapel LIKE :search2
+        ORDER BY nama_mapel";
 
-// Get total mapel for pagination
-$stmt = $pdo->prepare("SELECT COUNT(*) FROM mata_pelajaran $where");
-if (!empty($search)) {
-    $stmt->bindValue(':search', "%$search%");
-}
-$stmt->execute();
-$total_mapel = $stmt->fetchColumn();
-$total_pages = ceil($total_mapel / $limit);
+$stmt = $pdo->prepare($sql);
+$stmt->execute([
+    'search1' => $search_sql,
+    'search2' => $search_sql
+]);
+$mata_pelajaran = $stmt->fetchAll();
 
-// Get mapel data
-$stmt = $pdo->prepare("SELECT * FROM mata_pelajaran $where ORDER BY nama_mapel ASC LIMIT :limit OFFSET :offset");
-if (!empty($search)) {
-    $stmt->bindValue(':search', "%$search%");
+// Hitung jumlah kelas yang menggunakan mata pelajaran ini (jika diperlukan)
+$jumlah_penggunaan = [];
+foreach ($mata_pelajaran as $mapel) {
+    $stmt = $pdo->prepare("SELECT COUNT(*) FROM mata_pelajaran WHERE mapel_id = ?");
+    $stmt->execute([$mapel['mapel_id']]);
+    $jumlah_penggunaan[$mapel['mapel_id']] = $stmt->fetchColumn();
 }
-$stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
-$stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
-$stmt->execute();
-$mapel_list = $stmt->fetchAll();
 ?>
 
 
@@ -82,37 +76,51 @@ $mapel_list = $stmt->fetchAll();
                     <div class="card">
                         <div class="card-header d-flex justify-content-between align-items-center">
                             <span>Daftar Mata Pelajaran</span>
-                            <a href="tambah.php" class="btn btn-primary btn-sm">
-                                Tambah Mata Pelajaran
-                            </a>
+                            <div class="d-flex align-items-center">
+                                <form method="get" class="d-flex me-2">
+                                    <input type="text" name="search" class="form-control form-control-sm me-2"
+                                        value="<?= htmlspecialchars($search_raw) ?>" placeholder="Cari mata pelajaran...">
+                                    <button type="submit" class="btn btn-outline-secondary btn-sm">Cari</button>
+                                </form>
+                                <a href="index.php" class="btn btn-secondary btn-sm">
+                                    Reset
+                                </a>
+                                <a href="tambah.php" class="btn btn-primary btn-sm ms-3">
+                                    Tambah Mata Pelajaran
+                                </a>
+                            </div>
                         </div>
                         <div class="card-body">
                             <div class="table-responsive">
-                                <table class="table table-striped">
+                                <table class="table table-striped table-hover">
                                     <thead>
                                         <tr>
+                                            <th>No</th>
                                             <th>Kode</th>
-                                            <th>Nama Mata Pelajaran</th>
+                                            <th>Mata Pelajaran</th>
                                             <th>Deskripsi</th>
+                                            <!-- <th>Digunakan di Kelas</th> -->
                                             <th>Aksi</th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <?php if (empty($mapel_list)): ?>
+                                        <?php if (empty($mata_pelajaran)): ?>
                                             <tr>
-                                                <td colspan="4" class="text-center">Tidak ada data mata pelajaran</td>
+                                                <td colspan="5" class="text-center">Tidak ada data mata pelajaran</td>
                                             </tr>
                                         <?php else: ?>
-                                            <?php foreach ($mapel_list as $mapel): ?>
+                                            <?php foreach ($mata_pelajaran as $i => $mapel): ?>
                                                 <tr>
+                                                    <td><?= $i + 1 ?></td>
                                                     <td><?= htmlspecialchars($mapel['kode_mapel']) ?></td>
                                                     <td><?= htmlspecialchars($mapel['nama_mapel']) ?></td>
-                                                    <td><?= htmlspecialchars(substr($mapel['deskripsi'], 0, 50)) ?><?= strlen($mapel['deskripsi']) > 50 ? '...' : '' ?></td>
+                                                    <td><?= htmlspecialchars($mapel['deskripsi']) ?></td>
+                                                    <!-- <td><?= $jumlah_penggunaan[$mapel['mapel_id']] ?? 0 ?></td> -->
                                                     <td>
-                                                        <a href="edit.php?id=<?= $mapel['mapel_id'] ?>" class="btn btn-sm btn-warning">
+                                                        <a href="edit.php?id=<?= $mapel['mapel_id'] ?>" class="btn btn-sm btn-warning" title="Edit">
                                                             <i class="bi bi-pencil-square"></i>
                                                         </a>
-                                                        <a href="hapus.php?id=<?= $mapel['mapel_id'] ?>" class="btn btn-sm btn-danger" onclick="return confirm('Apakah Anda yakin?')">
+                                                        <a href="hapus.php?id=<?= $mapel['mapel_id'] ?>" class="btn btn-sm btn-danger" title="Hapus" onclick="return confirm('Apakah Anda yakin ingin menghapus mata pelajaran ini?')">
                                                             <i class="bi bi-trash"></i>
                                                         </a>
                                                     </td>
@@ -122,35 +130,6 @@ $mapel_list = $stmt->fetchAll();
                                     </tbody>
                                 </table>
                             </div>
-
-                            <!-- Pagination -->
-                            <?php if ($total_pages > 1): ?>
-                                <nav aria-label="Page navigation">
-                                    <ul class="pagination justify-content-center">
-                                        <?php if ($page > 1): ?>
-                                            <li class="page-item">
-                                                <a class="page-link" href="?page=<?= $page - 1 ?>&search=<?= urlencode($search) ?>" aria-label="Previous">
-                                                    <span aria-hidden="true">&laquo;</span>
-                                                </a>
-                                            </li>
-                                        <?php endif; ?>
-
-                                        <?php for ($i = 1; $i <= $total_pages; $i++): ?>
-                                            <li class="page-item <?= $i == $page ? 'active' : '' ?>">
-                                                <a class="page-link" href="?page=<?= $i ?>&search=<?= urlencode($search) ?>"><?= $i ?></a>
-                                            </li>
-                                        <?php endfor; ?>
-
-                                        <?php if ($page < $total_pages): ?>
-                                            <li class="page-item">
-                                                <a class="page-link" href="?page=<?= $page + 1 ?>&search=<?= urlencode($search) ?>" aria-label="Next">
-                                                    <span aria-hidden="true">&raquo;</span>
-                                                </a>
-                                            </li>
-                                        <?php endif; ?>
-                                    </ul>
-                                </nav>
-                            <?php endif; ?>
                         </div>
                     </div>
 

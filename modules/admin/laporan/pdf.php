@@ -56,38 +56,35 @@ $params[] = $bulan;
 
 $where_clause = $where ? "WHERE " . implode(" AND ", $where) : "";
 
+// Perbaikan query dengan join yang benar
 if ($tipe_laporan == 'harian') {
     $sql = "SELECT a.tanggal, 
-                COUNT(CASE WHEN a.status = 'hadir' THEN 1 END) as hadir,
-                COUNT(CASE WHEN a.status = 'sakit' THEN 1 END) as sakit,
-                COUNT(CASE WHEN a.status = 'izin' THEN 1 END) as izin,
-                COUNT(CASE WHEN a.status = 'alpha' THEN 1 END) as alpha,
-                COUNT(*) as total
+                   COUNT(CASE WHEN a.status = 'hadir' THEN 1 END) as hadir,
+                   COUNT(CASE WHEN a.status = 'sakit' THEN 1 END) as sakit,
+                   COUNT(CASE WHEN a.status = 'izin' THEN 1 END) as izin,
+                   COUNT(CASE WHEN a.status = 'alpha' THEN 1 END) as alpha,
+                   COUNT(*) as total
             FROM absensi a
             JOIN murid m ON a.murid_id = m.murid_id
+            JOIN kelas k ON m.kelas_id = k.kelas_id
             JOIN jadwal_pelajaran j ON a.jadwal_id = j.jadwal_id
             $where_clause
             GROUP BY a.tanggal
             ORDER BY a.tanggal DESC";
-
-    $filename = "laporan_harian_{$bulan}.pdf";
-    $title = "Laporan Harian Bulan " . date('m Y', strtotime($bulan));
 } elseif ($tipe_laporan == 'mapel') {
-    $sql = "SELECT m.nama_mapel,
-                COUNT(CASE WHEN a.status = 'hadir' THEN 1 END) as hadir,
-                COUNT(CASE WHEN a.status = 'sakit' THEN 1 END) as sakit,
-                COUNT(CASE WHEN a.status = 'izin' THEN 1 END) as izin,
-                COUNT(CASE WHEN a.status = 'alpha' THEN 1 END) as alpha,
-                COUNT(*) as total
+    $sql = "SELECT mp.nama_mapel,
+                   COUNT(CASE WHEN a.status = 'hadir' THEN 1 END) as hadir,
+                   COUNT(CASE WHEN a.status = 'sakit' THEN 1 END) as sakit,
+                   COUNT(CASE WHEN a.status = 'izin' THEN 1 END) as izin,
+                   COUNT(CASE WHEN a.status = 'alpha' THEN 1 END) as alpha,
+                   COUNT(*) as total
             FROM absensi a
             JOIN jadwal_pelajaran j ON a.jadwal_id = j.jadwal_id
-            JOIN mata_pelajaran m ON j.mapel_id = m.mapel_id
+            JOIN mata_pelajaran mp ON j.mapel_id = mp.mapel_id
+            JOIN murid m ON a.murid_id = m.murid_id
             $where_clause
-            GROUP BY m.mapel_id
-            ORDER BY m.nama_mapel";
-
-    $filename = "laporan_mapel_{$bulan}.pdf";
-    $title = "Laporan Per Mata Pelajaran Bulan " . date('m Y', strtotime($bulan));
+            GROUP BY mp.mapel_id
+            ORDER BY mp.nama_mapel";
 } elseif ($tipe_laporan == 'kelas') {
     $sql = "SELECT k.nama_kelas,
                    COUNT(CASE WHEN a.status = 'hadir' THEN 1 END) as hadir,
@@ -101,18 +98,17 @@ if ($tipe_laporan == 'harian') {
             $where_clause
             GROUP BY k.kelas_id
             ORDER BY k.nama_kelas";
-
-    $filename = "laporan_kelas_{$bulan}.pdf";
-    $title = "Laporan Per Kelas Bulan " . date('m Y', strtotime($bulan));
 }
+$filename = "laporan_kelas_{$bulan}.pdf";
+$title = "Laporan Per Kelas Bulan " . date('m Y', strtotime($bulan));
 
 $stmt = $pdo->prepare($sql);
 $stmt->execute($params);
 $laporan = $stmt->fetchAll();
 
 
-// Path ke logo sekolah - sesuaikan dengan path yang benar
-$logo_path = '/absensi-smpn2-cikatomas/assets/images/Logo.png';
+// Path ke logo sekolah - gunakan path absolut server
+$logo_path = __DIR__ . '/Logo.png';
 
 // Create new PDF document
 $pdf = new TCPDF('P', 'mm', 'A4', true, 'UTF-8', false);
@@ -179,12 +175,14 @@ if ($mapel_id) {
     $filter_info .= "Mata Pelajaran: " . $mapel['nama_mapel'] . " | ";
 }
 
-$filter_info .= "Periode: " . date('F Y', strtotime($bulan));
+$timestamp = strtotime($bulan); // contoh $bulan = '2025-06'
+$namaBulan = namaBulanIndonesia(date('F', $timestamp));
+$tahun = date('Y', $timestamp);
+$filter_info .= "Periode: " . $namaBulan . " " . $tahun;
 
 $pdf->Cell(0, 6, $filter_info, 0, 1);
 $pdf->Ln(5); // Spasi
 
-// Tabel Data
 $pdf->SetFont('helvetica', 'B', 10);
 
 // Header Tabel
@@ -193,17 +191,17 @@ $widths = [];
 $aligns = [];
 
 if ($tipe_laporan == 'harian') {
-    $header = ['Tanggal', 'Hadir', 'Sakit', 'Izin', 'Alpha', 'Total', '% Hadir'];
-    $widths = [85, 15, 15, 15, 15, 15, 20];
-    $aligns = ['L', 'C', 'C', 'C', 'C', 'C', 'C'];
+    $header = ['No', 'Tanggal', 'Hadir', 'Sakit', 'Izin', 'Alpha', 'Total', '% Hadir'];
+    $widths = [10, 75, 15, 15, 15, 15, 15, 20];
+    $aligns = ['C', 'L', 'C', 'C', 'C', 'C', 'C', 'C'];
 } elseif ($tipe_laporan == 'mapel') {
-    $header = ['Mata Pelajaran', 'Hadir', 'Sakit', 'Izin', 'Alpha', 'Total', '% Hadir'];
-    $widths = [85, 15, 15, 15, 15, 15, 20];
-    $aligns = ['L', 'C', 'C', 'C', 'C', 'C', 'C'];
+    $header = ['No', 'Mata Pelajaran', 'Hadir', 'Sakit', 'Izin', 'Alpha', 'Total', '% Hadir'];
+    $widths = [10, 75, 15, 15, 15, 15, 15, 20];
+    $aligns = ['C', 'L', 'C', 'C', 'C', 'C', 'C', 'C'];
 } elseif ($tipe_laporan == 'kelas') {
-    $header = ['Kelas', 'Hadir', 'Sakit', 'Izin', 'Alpha', 'Total', '% Hadir'];
-    $widths = [85, 15, 15, 15, 15, 15, 20];
-    $aligns = ['L', 'C', 'C', 'C', 'C', 'C', 'C'];
+    $header = ['No', 'Kelas', 'Hadir', 'Sakit', 'Izin', 'Alpha', 'Total', '% Hadir'];
+    $widths = [10, 75, 15, 15, 15, 15, 15, 20];
+    $aligns = ['C', 'L', 'C', 'C', 'C', 'C', 'C', 'C'];
 }
 
 // Warna header tabel
@@ -212,35 +210,39 @@ $pdf->SetTextColor(0);
 $pdf->SetDrawColor(0, 0, 0);
 $pdf->SetLineWidth(0.3);
 
-// Header tabel
+// Cetak Header
 for ($i = 0; $i < count($header); $i++) {
     $pdf->Cell($widths[$i], 7, $header[$i], 1, 0, 'C', 1);
 }
 $pdf->Ln();
 
-// Data tabel
+// Data
 $pdf->SetFont('helvetica', '', 9);
 $pdf->SetFillColor(255, 255, 255);
 
+$no = 1;
 foreach ($laporan as $row) {
-    // Kolom pertama berbeda berdasarkan tipe laporan
+    // Kolom No
+    $pdf->Cell($widths[0], 6, $no++, 'LR', 0, $aligns[0]);
+
+    // Kolom pertama (dinamis)
     if ($tipe_laporan == 'harian') {
-        $pdf->Cell($widths[0], 6, date('d/m/Y', strtotime($row['tanggal'])), 'LR', 0, $aligns[0]);
+        $pdf->Cell($widths[1], 6, date('d/m/Y', strtotime($row['tanggal'])), 'LR', 0, $aligns[1]);
     } elseif ($tipe_laporan == 'mapel') {
-        $pdf->Cell($widths[0], 6, $row['nama_mapel'], 'LR', 0, $aligns[0]);
+        $pdf->Cell($widths[1], 6, $row['nama_mapel'], 'LR', 0, $aligns[1]);
     } elseif ($tipe_laporan == 'kelas') {
-        $pdf->Cell($widths[0], 6, $row['nama_kelas'], 'LR', 0, $aligns[0]);
+        $pdf->Cell($widths[1], 6, $row['nama_kelas'], 'LR', 0, $aligns[1]);
     }
 
     // Kolom data
-    $pdf->Cell($widths[1], 6, $row['hadir'], 'LR', 0, $aligns[1]);
-    $pdf->Cell($widths[2], 6, $row['sakit'], 'LR', 0, $aligns[2]);
-    $pdf->Cell($widths[3], 6, $row['izin'], 'LR', 0, $aligns[3]);
-    $pdf->Cell($widths[4], 6, $row['alpha'], 'LR', 0, $aligns[4]);
-    $pdf->Cell($widths[5], 6, $row['total'], 'LR', 0, $aligns[5]);
+    $pdf->Cell($widths[2], 6, $row['hadir'], 'LR', 0, $aligns[2]);
+    $pdf->Cell($widths[3], 6, $row['sakit'], 'LR', 0, $aligns[3]);
+    $pdf->Cell($widths[4], 6, $row['izin'], 'LR', 0, $aligns[4]);
+    $pdf->Cell($widths[5], 6, $row['alpha'], 'LR', 0, $aligns[5]);
+    $pdf->Cell($widths[6], 6, $row['total'], 'LR', 0, $aligns[6]);
 
     $persen = $row['total'] > 0 ? round(($row['hadir'] / $row['total']) * 100, 2) : 0;
-    $pdf->Cell($widths[6], 6, $persen . '%', 'LR', 0, $aligns[6]);
+    $pdf->Cell($widths[7], 6, $persen . '%', 'LR', 0, $aligns[7]);
 
     $pdf->Ln();
 }

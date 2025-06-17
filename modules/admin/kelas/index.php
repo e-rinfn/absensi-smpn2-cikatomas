@@ -5,12 +5,26 @@ if (!isAdmin()) {
     exit;
 }
 
-// Ambil data kelas
-$stmt = $pdo->prepare("SELECT k.*, u.full_name AS wali_kelas 
-                      FROM kelas k
-                      LEFT JOIN users u ON k.wali_kelas_id = u.user_id
-                      ORDER BY k.tingkat, k.nama_kelas");
-$stmt->execute();
+$search_raw = isset($_GET['search']) ? trim($_GET['search']) : '';
+$search_sql = '%' . $search_raw . '%';
+
+// Query untuk mengambil data kelas dengan kondisi search
+$sql = "SELECT k.*, u.full_name AS wali_kelas 
+        FROM kelas k
+        LEFT JOIN users u ON k.wali_kelas_id = u.user_id
+        WHERE k.nama_kelas LIKE :search1 
+           OR k.tingkat LIKE :search2 
+           OR k.tahun_ajaran LIKE :search3 
+           OR u.full_name LIKE :search4
+        ORDER BY k.tingkat, k.nama_kelas";
+
+$stmt = $pdo->prepare($sql);
+$stmt->execute([
+    'search1' => $search_sql,
+    'search2' => $search_sql,
+    'search3' => $search_sql,
+    'search4' => $search_sql
+]);
 $kelas = $stmt->fetchAll();
 
 // Hitung jumlah murid per kelas
@@ -21,6 +35,7 @@ foreach ($kelas as $k) {
     $jumlah_murid[$k['kelas_id']] = $stmt->fetchColumn();
 }
 ?>
+
 
 <?php include '../../../includes/header.php'; ?>
 
@@ -61,11 +76,26 @@ foreach ($kelas as $k) {
                     <div class="card mb-4">
                         <div class="card-header d-flex justify-content-between align-items-center">
                             <span>Daftar Kelas</span>
-                            <a href="tambah.php" class="btn btn-primary btn-sm">
-                                Tambah Kelas
-                            </a>
+                            <div class="d-flex align-items-center">
+                                <form method="get" class="d-flex me-2">
+                                    <input type="text" name="search" class="form-control form-control-sm me-2"
+                                        value="<?= htmlspecialchars($search_raw) ?>" placeholder="Cari kelas...">
+                                    <button type="submit" class="btn btn-outline-secondary btn-sm">Cari</button>
+                                </form>
+                                <a href="index.php" class="btn btn-secondary btn-sm">
+                                    Reset
+                                </a>
+                                <a href="tambah.php" class="btn btn-primary btn-sm ms-3">
+                                    Tambah Kelas
+                                </a>
+                            </div>
                         </div>
+
                         <div class="card-body">
+                            <?php if ($search_raw && empty($kelas)): ?>
+                                <div class="alert alert-warning">Tidak ditemukan kelas dengan kata kunci "<?= htmlspecialchars($search_raw) ?>"</div>
+                            <?php endif; ?>
+
                             <div class="table-responsive">
                                 <table class="table table-striped table-hover">
                                     <thead>
@@ -120,9 +150,15 @@ foreach ($kelas as $k) {
 
 
     <!-- Javascript add start -->
-
-    <!-- your javascript code here -->
-
+    <script>
+        // Fokuskan input search saat halaman dimuat
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchInput = document.querySelector('input[name="search"]');
+            if (searchInput) {
+                searchInput.focus();
+            }
+        });
+    </script>
     <!-- Javascript add end -->
 
     <!-- Javascript template mazer start -->

@@ -81,7 +81,8 @@ $users = $stmt->fetchAll();
                                 <table class="table table-striped">
                                     <thead>
                                         <tr>
-                                            <th>ID</th>
+                                            <th>No</th>
+                                            <!-- <th>ID</th> -->
                                             <th>Username</th>
                                             <th>Nama Lengkap</th>
                                             <th>Email</th>
@@ -95,9 +96,10 @@ $users = $stmt->fetchAll();
                                                 <td colspan="6" class="text-center">Tidak ada data user</td>
                                             </tr>
                                         <?php else: ?>
-                                            <?php foreach ($users as $user): ?>
+                                            <?php foreach ($users as $i => $user): ?>
                                                 <tr>
-                                                    <td><?= $user['user_id'] ?></td>
+                                                    <td><?= $i + 1 ?></td>
+                                                    <!-- <td><?= $user['user_id'] ?></td> -->
                                                     <td><?= htmlspecialchars($user['username']) ?></td>
                                                     <td><?= htmlspecialchars($user['full_name']) ?></td>
                                                     <td><?= htmlspecialchars($user['email']) ?></td>
