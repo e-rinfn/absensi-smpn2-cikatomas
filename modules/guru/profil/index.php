@@ -96,7 +96,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <div id="app">
         <!-- Sidebar start -->
 
-        <?php include '../../../includes/navigation/admin.php'; ?>
+        <?php include '../../../includes/navigation/guru.php'; ?>
 
         <!-- Sidebar end -->
 

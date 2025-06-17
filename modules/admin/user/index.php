@@ -5,36 +5,41 @@ if (!isAdmin()) {
     exit;
 }
 
-// Pagination
-$limit = 10;
-$page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
-$offset = ($page - 1) * $limit;
-
 // Search functionality
-$search = isset($_GET['search']) ? $_GET['search'] : '';
-$where = '';
-if (!empty($search)) {
-    $where = "WHERE username LIKE :search OR full_name LIKE :search OR email LIKE :search";
-}
+$search_raw = isset($_GET['search']) ? trim($_GET['search']) : '';
+$search_sql = '%' . $search_raw . '%';
 
-// Get total users for pagination
-$stmt = $pdo->prepare("SELECT COUNT(*) FROM users $where");
-if (!empty($search)) {
-    $stmt->bindValue(':search', "%$search%");
-}
-$stmt->execute();
-$total_users = $stmt->fetchColumn();
-$total_pages = ceil($total_users / $limit);
+// Query untuk mengambil data pengguna dengan kondisi search
+$sql = "SELECT u.* 
+        FROM users u
+        WHERE u.username LIKE :search1 
+           OR u.full_name LIKE :search2 
+           OR u.email LIKE :search3 
+           OR u.role LIKE :search4
+        ORDER BY u.role, u.full_name";
 
-// Get users data
-$stmt = $pdo->prepare("SELECT * FROM users $where ORDER BY user_id DESC LIMIT :limit OFFSET :offset");
-if (!empty($search)) {
-    $stmt->bindValue(':search', "%$search%");
-}
-$stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
-$stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
-$stmt->execute();
+$stmt = $pdo->prepare($sql);
+$stmt->execute([
+    'search1' => $search_sql,
+    'search2' => $search_sql,
+    'search3' => $search_sql,
+    'search4' => $search_sql
+]);
 $users = $stmt->fetchAll();
+
+// Jika ingin menampilkan jumlah data terkait (misalnya jumlah kelas untuk wali kelas)
+$related_counts = [];
+foreach ($users as $user) {
+    if ($user['role'] == 'wali_murid') {
+        $stmt = $pdo->prepare("SELECT COUNT(*) FROM murid WHERE wali_murid_id = ?");
+        $stmt->execute([$user['user_id']]);
+        $related_counts[$user['user_id']] = $stmt->fetchColumn();
+    } elseif ($user['role'] == 'wali_kelas') {
+        $stmt = $pdo->prepare("SELECT COUNT(*) FROM kelas WHERE wali_kelas_id = ?");
+        $stmt->execute([$user['user_id']]);
+        $related_counts[$user['user_id']] = $stmt->fetchColumn();
+    }
+}
 ?>
 
 
@@ -72,9 +77,19 @@ $users = $stmt->fetchAll();
                     <div class="card">
                         <div class="card-header d-flex justify-content-between align-items-center">
                             <span>Daftar Pengguna</span>
-                            <a href="tambah.php" class="btn btn-primary btn-sm">
-                                Tambah Pengguna
-                            </a>
+                            <div class="d-flex align-items-center">
+                                <form method="get" class="d-flex me-2">
+                                    <input type="text" name="search" class="form-control form-control-sm me-2"
+                                        value="<?= htmlspecialchars($search_raw) ?>" placeholder="Cari murid...">
+                                    <button type="submit" class="btn btn-outline-secondary btn-sm">Cari</button>
+                                </form>
+                                <a href="index.php" class="btn btn-secondary btn-sm">
+                                    Reset
+                                </a>
+                                <a href="tambah.php" class="btn btn-primary btn-sm ms-3">
+                                    Tambah Pengguna
+                                </a>
+                            </div>
                         </div>
                         <div class="card-body">
                             <div class="table-responsive">
@@ -82,44 +97,39 @@ $users = $stmt->fetchAll();
                                     <thead>
                                         <tr>
                                             <th>No</th>
-                                            <!-- <th>ID</th> -->
                                             <th>Username</th>
                                             <th>Nama Lengkap</th>
                                             <th>Email</th>
                                             <th>Role</th>
+                                            <!-- <th>Jumlah Terkait</th> -->
                                             <th>Aksi</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         <?php if (empty($users)): ?>
                                             <tr>
-                                                <td colspan="6" class="text-center">Tidak ada data user</td>
+                                                <td colspan="7" class="text-center">Tidak ada data pengguna</td>
                                             </tr>
                                         <?php else: ?>
                                             <?php foreach ($users as $i => $user): ?>
                                                 <tr>
                                                     <td><?= $i + 1 ?></td>
-                                                    <!-- <td><?= $user['user_id'] ?></td> -->
                                                     <td><?= htmlspecialchars($user['username']) ?></td>
                                                     <td><?= htmlspecialchars($user['full_name']) ?></td>
                                                     <td><?= htmlspecialchars($user['email']) ?></td>
+                                                    <td><?= htmlspecialchars($user['role']) ?></td>
+                                                    <!-- <td>
+                                                        <?php if (isset($related_counts[$user['user_id']])): ?>
+                                                            <?= $related_counts[$user['user_id']] ?>
+                                                        <?php else: ?>
+                                                            0
+                                                        <?php endif; ?>
+                                                    </td> -->
                                                     <td>
-                                                        <?php
-                                                        $badge_class = [
-                                                            'admin' => 'bg-primary',
-                                                            'guru' => 'bg-success',
-                                                            'wali_murid' => 'bg-info'
-                                                        ][$user['role']] ?? 'bg-secondary';
-                                                        ?>
-                                                        <span class="badge <?= $badge_class ?>">
-                                                            <?= ucfirst(str_replace('_', ' ', $user['role'])) ?>
-                                                        </span>
-                                                    </td>
-                                                    <td>
-                                                        <a href="edit.php?id=<?= $user['user_id'] ?>" class="btn btn-sm btn-warning">
+                                                        <a href="edit.php?id=<?= $m['murid_id'] ?>" class="btn btn-sm btn-warning" title="Edit">
                                                             <i class="bi bi-pencil-square"></i>
                                                         </a>
-                                                        <a href="hapus.php?id=<?= $user['user_id'] ?>" class="btn btn-sm btn-danger" onclick="return confirm('Apakah Anda yakin?')">
+                                                        <a href="hapus.php?id=<?= $m['murid_id'] ?>" class="btn btn-sm btn-danger" title="Hapus" onclick="return confirm('Apakah Anda yakin ingin menghapus murid ini?')">
                                                             <i class="bi bi-trash"></i>
                                                         </a>
                                                     </td>
@@ -130,34 +140,7 @@ $users = $stmt->fetchAll();
                                 </table>
                             </div>
 
-                            <!-- Pagination -->
-                            <?php if ($total_pages > 1): ?>
-                                <nav aria-label="Page navigation">
-                                    <ul class="pagination justify-content-center">
-                                        <?php if ($page > 1): ?>
-                                            <li class="page-item">
-                                                <a class="page-link" href="?page=<?= $page - 1 ?>&search=<?= urlencode($search) ?>" aria-label="Previous">
-                                                    <span aria-hidden="true">&laquo;</span>
-                                                </a>
-                                            </li>
-                                        <?php endif; ?>
 
-                                        <?php for ($i = 1; $i <= $total_pages; $i++): ?>
-                                            <li class="page-item <?= $i == $page ? 'active' : '' ?>">
-                                                <a class="page-link" href="?page=<?= $i ?>&search=<?= urlencode($search) ?>"><?= $i ?></a>
-                                            </li>
-                                        <?php endfor; ?>
-
-                                        <?php if ($page < $total_pages): ?>
-                                            <li class="page-item">
-                                                <a class="page-link" href="?page=<?= $page + 1 ?>&search=<?= urlencode($search) ?>" aria-label="Next">
-                                                    <span aria-hidden="true">&raquo;</span>
-                                                </a>
-                                            </li>
-                                        <?php endif; ?>
-                                    </ul>
-                                </nav>
-                            <?php endif; ?>
                         </div>
                     </div>
 
