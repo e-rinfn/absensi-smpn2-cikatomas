@@ -126,10 +126,10 @@ foreach ($users as $user) {
                                                         <?php endif; ?>
                                                     </td> -->
                                                     <td>
-                                                        <a href="edit.php?id=<?= $m['murid_id'] ?>" class="btn btn-sm btn-warning" title="Edit">
+                                                        <a href="edit.php?id=<?= $m['user_id'] ?>" class="btn btn-sm btn-warning" title="Edit">
                                                             <i class="bi bi-pencil-square"></i>
                                                         </a>
-                                                        <a href="hapus.php?id=<?= $m['murid_id'] ?>" class="btn btn-sm btn-danger" title="Hapus" onclick="return confirm('Apakah Anda yakin ingin menghapus murid ini?')">
+                                                        <a href="hapus.php?id=<?= $m['user_id'] ?>" class="btn btn-sm btn-danger" title="Hapus" onclick="return confirm('Apakah Anda yakin ingin menghapus murid ini?')">
                                                             <i class="bi bi-trash"></i>
                                                         </a>
                                                     </td>
