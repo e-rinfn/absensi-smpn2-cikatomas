@@ -183,9 +183,13 @@ $selected_mapel = $mapel_id;
                                     <input type="month" name="bulan" value="<?= $bulan ?>" class="form-control">
                                 </div>
 
-                                <div class="col-md-1 d-flex align-items-end">
-                                    <button type="submit" class="btn btn-primary">Filter</button>
+                                <div class="col-md-2 d-flex align-items-end">
+                                    <button type="submit" class="btn btn-primary w-50">Filter</button>
+
+
+                                    <a href="index.php" class="btn btn-secondary w-50 ms-3">Reset</a>
                                 </div>
+
                             </form>
                         </div>
                     </div>
