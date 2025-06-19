@@ -21,6 +21,9 @@ $sql = "SELECT j.*, k.nama_kelas, m.nama_mapel, u.full_name AS nama_guru
            OR j.hari LIKE :search4
            OR j.jam_mulai LIKE :search5
            OR j.jam_selesai LIKE :search6
+           OR j.ruang_kelas LIKE :search7
+           OR j.semester LIKE :search8
+           OR j.tahun_ajaran LIKE :search9
         ORDER BY j.hari, j.jam_mulai";
 
 $stmt = $pdo->prepare($sql);
@@ -30,7 +33,10 @@ $stmt->execute([
     'search3' => $search_sql,
     'search4' => $search_sql,
     'search5' => $search_sql,
-    'search6' => $search_sql
+    'search6' => $search_sql,
+    'search7' => $search_sql,
+    'search8' => $search_sql,
+    'search9' => $search_sql
 ]);
 $jadwal = $stmt->fetchAll();
 
@@ -84,7 +90,7 @@ $nama_hari = [
                             <div class="d-flex align-items-center">
                                 <form method="get" class="d-flex me-2">
                                     <input type="text" name="search" class="form-control form-control-sm me-2"
-                                        value="<?= htmlspecialchars($search_raw) ?>" placeholder="Cari mata pelajaran...">
+                                        value="<?= htmlspecialchars($search_raw) ?>" placeholder="Cari jadwal...">
                                     <button type="submit" class="btn btn-outline-secondary btn-sm">Cari</button>
                                 </form>
                                 <a href="index.php" class="btn btn-secondary btn-sm">
@@ -108,8 +114,10 @@ $nama_hari = [
                                                 <th>Kelas</th>
                                                 <th>Mata Pelajaran</th>
                                                 <th>Guru</th>
-                                                <th>Jam Mulai</th>
-                                                <th>Jam Selesai</th>
+                                                <th>Jam</th>
+                                                <th>Ruang</th>
+                                                <th>Semester</th>
+                                                <th>Tahun Ajaran</th>
                                                 <th>Aksi</th>
                                             </tr>
                                         </thead>
@@ -121,8 +129,10 @@ $nama_hari = [
                                                     <td><?= htmlspecialchars($j['nama_kelas']) ?></td>
                                                     <td><?= htmlspecialchars($j['nama_mapel']) ?></td>
                                                     <td><?= htmlspecialchars($j['nama_guru']) ?></td>
-                                                    <td><?= htmlspecialchars($j['jam_mulai']) ?></td>
-                                                    <td><?= htmlspecialchars($j['jam_selesai']) ?></td>
+                                                    <td><?= htmlspecialchars($j['jam_mulai']) ?> - <?= htmlspecialchars($j['jam_selesai']) ?></td>
+                                                    <td><?= htmlspecialchars($j['ruang_kelas']) ?></td>
+                                                    <td><?= htmlspecialchars($j['semester']) ?></td>
+                                                    <td><?= htmlspecialchars($j['tahun_ajaran']) ?></td>
                                                     <td>
                                                         <a href="edit.php?id=<?= $j['jadwal_id'] ?>" class="btn btn-sm btn-warning">
                                                             <i class="bi bi-pencil-square"></i>

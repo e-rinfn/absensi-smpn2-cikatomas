@@ -23,6 +23,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $hari = $_POST['hari'];
     $jam_mulai = $_POST['jam_mulai'];
     $jam_selesai = $_POST['jam_selesai'];
+    $ruang_kelas = $_POST['ruang_kelas'];
+    $semester = $_POST['semester'];
+    $tahun_ajaran = $_POST['tahun_ajaran'];
 
     // Validasi jam
     if (strtotime($jam_mulai) >= strtotime($jam_selesai)) {
@@ -40,9 +43,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } else {
             // Insert ke database
             $stmt = $pdo->prepare("INSERT INTO jadwal_pelajaran 
-                                  (kelas_id, mapel_id, guru_id, hari, jam_mulai, jam_selesai) 
-                                  VALUES (?, ?, ?, ?, ?, ?)");
-            $stmt->execute([$kelas_id, $mapel_id, $guru_id, $hari, $jam_mulai, $jam_selesai]);
+                                  (kelas_id, mapel_id, guru_id, hari, jam_mulai, jam_selesai, ruang_kelas, semester, tahun_ajaran) 
+                                  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+            $stmt->execute([$kelas_id, $mapel_id, $guru_id, $hari, $jam_mulai, $jam_selesai, $ruang_kelas, $semester, $tahun_ajaran]);
 
             $_SESSION['success'] = "Jadwal berhasil ditambahkan";
             header('Location: index.php');
@@ -151,6 +154,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                         <label class="form-label">Jam Selesai</label>
                                         <input type="time" name="jam_selesai" class="form-control"
                                             value="<?= $_POST['jam_selesai'] ?? '' ?>" required>
+                                    </div>
+                                </div>
+
+                                <div class="row mb-3">
+                                    <div class="col-md-4">
+                                        <label class="form-label">Ruang Kelas</label>
+                                        <input type="text" name="ruang_kelas" class="form-control"
+                                            value="<?= $_POST['ruang_kelas'] ?? '' ?>" required>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label">Semester</label>
+                                        <select name="semester" class="form-select" required>
+                                            <option value="">Pilih Semester</option>
+                                            <option value="Ganjil" <?= isset($_POST['semester']) && $_POST['semester'] == 'Ganjil' ? 'selected' : '' ?>>Ganjil</option>
+                                            <option value="Genap" <?= isset($_POST['semester']) && $_POST['semester'] == 'Genap' ? 'selected' : '' ?>>Genap</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label">Tahun Ajaran</label>
+                                        <input type="text" name="tahun_ajaran" class="form-control"
+                                            value="<?= $_POST['tahun_ajaran'] ?? '' ?>" placeholder="Format: 2023/2024" required>
                                     </div>
                                 </div>
                             </div>
