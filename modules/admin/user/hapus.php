@@ -52,22 +52,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <?php include '../../../includes/header.php'; ?>
 <?php include '../../../includes/navigation/admin.php'; ?>
 
-<div class="container">
-    <h1>Hapus User</h1>
+<div class="d-flex justify-content-center align-items-center min-vh-100">
+    <div class="container" style="max-width: 600px;">
+        <h1 class="text-center">Hapus User</h1>
 
-    <div class="alert alert-warning">
-        <p>Anda yakin ingin menghapus user berikut?</p>
-        <ul>
-            <li>Username: <?= htmlspecialchars($user['username']) ?></li>
-            <li>Nama: <?= htmlspecialchars($user['full_name']) ?></li>
-            <li>Role: <?= ucfirst(str_replace('_', ' ', $user['role'])) ?></li>
-        </ul>
+        <div class="alert alert-warning">
+            <p class="mb-2">Anda yakin ingin menghapus user berikut?</p>
+            <ul>
+                <li>Username: <?= htmlspecialchars($user['username']) ?></li>
+                <li>Nama: <?= htmlspecialchars($user['full_name']) ?></li>
+                <li>Role: <?= ucfirst(str_replace('_', ' ', $user['role'])) ?></li>
+            </ul>
+        </div>
+
+        <form method="POST" class="text-center">
+            <button type="submit" class="btn btn-danger me-2">Ya, Hapus</button>
+            <a href="index.php" class="btn btn-secondary">Batal</a>
+        </form>
     </div>
-
-    <form method="POST">
-        <button type="submit" class="btn btn-danger">Ya, Hapus</button>
-        <a href="index.php" class="btn btn-secondary">Batal</a>
-    </form>
 </div>
 
 <?php include '../../../includes/footer.php'; ?>
