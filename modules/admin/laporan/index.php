@@ -9,6 +9,8 @@ if (!isAdmin()) {
 $kelas_id = $_GET['kelas_id'] ?? null;
 $mapel_id = $_GET['mapel_id'] ?? null;
 $bulan = $_GET['bulan'] ?? date('Y-m');
+$semester = $_GET['semester'] ?? null;
+$tahun = $_GET['tahun'] ?? date('Y');
 $tipe_laporan = $_GET['tipe'] ?? 'harian';
 
 // Ambil data untuk filter
@@ -18,29 +20,19 @@ $kelas_list = $stmt_kelas->fetchAll();
 $stmt_mapel = $pdo->query("SELECT * FROM mata_pelajaran ORDER BY nama_mapel");
 $mapel_list = $stmt_mapel->fetchAll();
 
+// Generate tahun options (3 tahun terakhir dan 2 tahun ke depan)
+$current_year = date('Y');
+$years = range($current_year - 3, $current_year + 2);
+
 // Query berdasarkan filter
 $where = [];
 $params = [];
 
 if ($kelas_id) {
-    $where[] = "m.kelas_id = ?";
-    $params[] = $kelas_id;
-}
-
-if ($mapel_id) {
-    $where[] = "j.mapel_id = ?";
-    $params[] = $mapel_id;
-}
-// Query berdasarkan filter
-$where = [];
-$params = [];
-
-if ($kelas_id) {
-    // Gunakan prefix yang sesuai untuk setiap jenis laporan
     if ($tipe_laporan == 'mapel') {
-        $where[] = "mu.kelas_id = ?";  // Untuk laporan mapel
+        $where[] = "mu.kelas_id = ?";
     } else {
-        $where[] = "m.kelas_id = ?";   // Untuk laporan harian/kelas
+        $where[] = "m.kelas_id = ?";
     }
     $params[] = $kelas_id;
 }
@@ -50,8 +42,20 @@ if ($mapel_id) {
     $params[] = $mapel_id;
 }
 
-$where[] = "DATE_FORMAT(a.tanggal, '%Y-%m') = ?";
-$params[] = $bulan;
+// Filter berdasarkan periode
+if ($semester) {
+    if ($semester == 1) {
+        $where[] = "(MONTH(a.tanggal) BETWEEN 1 AND 6)";
+    } else {
+        $where[] = "(MONTH(a.tanggal) BETWEEN 7 AND 12)";
+    }
+    $where[] = "YEAR(a.tanggal) = ?";
+    $params[] = $tahun;
+} else {
+    // Default filter bulan jika tidak memilih semester
+    $where[] = "DATE_FORMAT(a.tanggal, '%Y-%m') = ?";
+    $params[] = $bulan;
+}
 
 $where_clause = $where ? "WHERE " . implode(" AND ", $where) : "";
 
@@ -108,12 +112,12 @@ $stmt = $pdo->prepare($sql);
 $stmt->execute($params);
 $laporan = $stmt->fetchAll();
 
-
 // Untuk select kelas dan mapel di form
 $selected_kelas = $kelas_id;
 $selected_mapel = $mapel_id;
+$selected_semester = $semester;
+$selected_tahun = $tahun;
 ?>
-
 
 <?php include '../../../includes/header.php'; ?>
 
@@ -179,14 +183,32 @@ $selected_mapel = $mapel_id;
                                 </div>
 
                                 <div class="col-md-2">
+                                    <label class="form-label">Periode</label>
+                                    <select name="semester" class="form-select" id="semesterSelect">
+                                        <option value="">Pilih Periode</option>
+                                        <option value="1" <?= $selected_semester == '1' ? 'selected' : '' ?>>Semester 1 (Jan-Jun)</option>
+                                        <option value="2" <?= $selected_semester == '2' ? 'selected' : '' ?>>Semester 2 (Jul-Des)</option>
+                                    </select>
+                                </div>
+
+                                <div class="col-md-2" id="tahunField">
+                                    <label class="form-label">Tahun</label>
+                                    <select name="tahun" class="form-select">
+                                        <?php foreach ($years as $year): ?>
+                                            <option value="<?= $year ?>" <?= $selected_tahun == $year ? 'selected' : '' ?>>
+                                                <?= $year ?>
+                                            </option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                </div>
+
+                                <div class="col-md-2" id="bulanField">
                                     <label class="form-label">Bulan</label>
                                     <input type="month" name="bulan" value="<?= $bulan ?>" class="form-control">
                                 </div>
 
                                 <div class="col-md-2 d-flex align-items-end">
                                     <button type="submit" class="btn btn-primary w-50">Filter</button>
-
-
                                     <a href="index.php" class="btn btn-secondary w-50 ms-3">Reset</a>
                                 </div>
 
@@ -200,14 +222,27 @@ $selected_mapel = $mapel_id;
                             const tipe = document.getElementById('tipeSelect').value;
                             const kelasField = document.getElementById('kelasField');
                             const mapelField = document.getElementById('mapelField');
+                            const semesterSelect = document.getElementById('semesterSelect');
+                            const bulanField = document.getElementById('bulanField');
+                            const tahunField = document.getElementById('tahunField');
 
                             // Tampilkan sesuai tipe
                             kelasField.style.display = (tipe === 'kelas') ? 'block' : 'none';
                             mapelField.style.display = (tipe === 'mapel') ? 'block' : 'none';
+
+                            // Toggle bulan/semester field
+                            if (semesterSelect.value) {
+                                bulanField.style.display = 'none';
+                                tahunField.style.display = 'block';
+                            } else {
+                                bulanField.style.display = 'block';
+                                tahunField.style.display = 'none';
+                            }
                         }
 
                         document.addEventListener('DOMContentLoaded', function() {
                             document.getElementById('tipeSelect').addEventListener('change', toggleFields);
+                            document.getElementById('semesterSelect').addEventListener('change', toggleFields);
                             toggleFields(); // jalankan saat pertama kali load halaman
                         });
                     </script>
