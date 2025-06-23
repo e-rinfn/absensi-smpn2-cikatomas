@@ -80,7 +80,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <form method="POST">
                         <div class="card">
                             <div class="card-header bg-warning">
-                                <h5 class="mb-0">Form Tambah Murid</h5>
+                                <h5 class="mb-0">Form Tambah Pengguna</h5>
                             </div>
                             <div class="card-body">
                                 <div class="row mb-3 mt-3">
