@@ -219,14 +219,69 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                                     <td><?= htmlspecialchars($m['nis']) ?></td>
                                                     <td><?= htmlspecialchars($m['nama_lengkap']) ?></td>
                                                     <td>
-                                                        <select name="absensi[<?= $m['murid_id'] ?>]" class="form-select form-select-sm" required>
-                                                            <option value="">Pilih Status</option>
-                                                            <option value="hadir" <?= ($absensi && $absensi['status'] == 'hadir') ? 'selected' : '' ?>>Hadir</option>
-                                                            <option value="sakit" <?= ($absensi && $absensi['status'] == 'sakit') ? 'selected' : '' ?>>Sakit</option>
-                                                            <option value="izin" <?= ($absensi && $absensi['status'] == 'izin') ? 'selected' : '' ?>>Izin</option>
-                                                            <option value="alpha" <?= ($absensi && $absensi['status'] == 'alpha') ? 'selected' : '' ?>>Alpha</option>
-                                                        </select>
+                                                        <div class="btn-group btn-group-sm" role="group">
+                                                            <button type="button" class="btn btn-outline-success absensi-btn <?= ($absensi && $absensi['status'] == 'hadir') ? 'active' : '' ?>"
+                                                                data-murid-id="<?= $m['murid_id'] ?>" data-status="hadir">
+                                                                Hadir
+                                                            </button>
+                                                            <button type="button" class="btn btn-outline-warning absensi-btn <?= ($absensi && $absensi['status'] == 'sakit') ? 'active' : '' ?>"
+                                                                data-murid-id="<?= $m['murid_id'] ?>" data-status="sakit">
+                                                                Sakit
+                                                            </button>
+                                                            <button type="button" class="btn btn-outline-info absensi-btn <?= ($absensi && $absensi['status'] == 'izin') ? 'active' : '' ?>"
+                                                                data-murid-id="<?= $m['murid_id'] ?>" data-status="izin">
+                                                                Izin
+                                                            </button>
+                                                            <button type="button" class="btn btn-outline-danger absensi-btn <?= ($absensi && $absensi['status'] == 'alpha') ? 'active' : '' ?>"
+                                                                data-murid-id="<?= $m['murid_id'] ?>" data-status="alpha">
+                                                                Alpha
+                                                            </button>
+                                                        </div>
+                                                        <input type="hidden" name="absensi[<?= $m['murid_id'] ?>]" id="absensi_<?= $m['murid_id'] ?>"
+                                                            value="<?= $absensi ? $absensi['status'] : '' ?>" required>
                                                     </td>
+
+                                                    <script>
+                                                        document.addEventListener('DOMContentLoaded', function() {
+                                                            // Menangani klik pada tombol absensi
+                                                            document.querySelectorAll('.absensi-btn').forEach(button => {
+                                                                button.addEventListener('click', function() {
+                                                                    const muridId = this.getAttribute('data-murid-id');
+                                                                    const status = this.getAttribute('data-status');
+
+                                                                    // Hapus kelas active dari semua tombol dalam grup yang sama
+                                                                    const buttonGroup = this.closest('.btn-group');
+                                                                    buttonGroup.querySelectorAll('.absensi-btn').forEach(btn => {
+                                                                        btn.classList.remove('active');
+                                                                    });
+
+                                                                    // Tambahkan kelas active ke tombol yang diklik
+                                                                    this.classList.add('active');
+
+                                                                    // Update nilai input hidden
+                                                                    document.getElementById('absensi_' + muridId).value = status;
+                                                                });
+                                                            });
+
+                                                            // Validasi form sebelum submit
+                                                            document.querySelector('form').addEventListener('submit', function(e) {
+                                                                let allFilled = true;
+                                                                document.querySelectorAll('input[name^="absensi["]').forEach(input => {
+                                                                    if (!input.value) {
+                                                                        allFilled = false;
+                                                                        // Highlight baris yang belum diisi
+                                                                        input.closest('tr').classList.add('table-danger');
+                                                                    }
+                                                                });
+
+                                                                if (!allFilled) {
+                                                                    e.preventDefault();
+                                                                    alert('Harap isi status absensi untuk semua murid!');
+                                                                }
+                                                            });
+                                                        });
+                                                    </script>
+
                                                     <td>
                                                         <input type="text" name="keterangan[<?= $m['murid_id'] ?>]" class="form-control form-control-sm" value="<?= $absensi ? htmlspecialchars($absensi['keterangan']) : '' ?>" placeholder="Keterangan (opsional)">
                                                     </td>

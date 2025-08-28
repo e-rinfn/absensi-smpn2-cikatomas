@@ -98,6 +98,34 @@ foreach ($absensi as $a) {
             </div>
             <div class="page-content">
                 <section class="row">
+
+
+                    <!-- Jadwal and Stats Card -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h4><?= htmlspecialchars($jadwal['nama_mapel']) ?> - <?= htmlspecialchars($jadwal['nama_kelas']) ?></h4>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <p><strong>Tanggal:</strong> <?= date('d/m/Y', strtotime($tanggal)) ?></p>
+                                    <p><strong>Hari:</strong> <?= $jadwal['hari'] ?></p>
+                                    <p><strong>Jam:</strong> <?= date('H:i', strtotime($jadwal['jam_mulai'])) ?> - <?= date('H:i', strtotime($jadwal['jam_selesai'])) ?></p>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="alert alert-info">
+                                        <h5>Statistik Kehadiran</h5>
+                                        <p>Hadir: <?= $hadir ?> murid</p>
+                                        <p>Sakit: <?= $sakit ?> murid</p>
+                                        <p>Izin: <?= $izin ?> murid</p>
+                                        <p>Alpha: <?= $alpha ?> murid</p>
+                                        <p>Total: <?= $total_murid ?> murid</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Filter Section -->
                     <div class="card mb-4">
                         <div class="card-header">
@@ -135,32 +163,6 @@ foreach ($absensi as $a) {
                                     </a>
                                 </div>
                             </form>
-                        </div>
-                    </div>
-
-                    <!-- Jadwal and Stats Card -->
-                    <div class="card mb-4">
-                        <div class="card-header">
-                            <h4><?= htmlspecialchars($jadwal['nama_mapel']) ?> - <?= htmlspecialchars($jadwal['nama_kelas']) ?></h4>
-                        </div>
-                        <div class="card-body">
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <p><strong>Tanggal:</strong> <?= date('d/m/Y', strtotime($tanggal)) ?></p>
-                                    <p><strong>Hari:</strong> <?= $jadwal['hari'] ?></p>
-                                    <p><strong>Jam:</strong> <?= date('H:i', strtotime($jadwal['jam_mulai'])) ?> - <?= date('H:i', strtotime($jadwal['jam_selesai'])) ?></p>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="alert alert-info">
-                                        <h5>Statistik Kehadiran</h5>
-                                        <p>Hadir: <?= $hadir ?> murid</p>
-                                        <p>Sakit: <?= $sakit ?> murid</p>
-                                        <p>Izin: <?= $izin ?> murid</p>
-                                        <p>Alpha: <?= $alpha ?> murid</p>
-                                        <p>Total: <?= $total_murid ?> murid</p>
-                                    </div>
-                                </div>
-                            </div>
                         </div>
                     </div>
 
@@ -209,9 +211,13 @@ foreach ($absensi as $a) {
                     </div>
 
                     <div class="mt-3">
-                        <a href="input.php?jadwal_id=<?= $jadwal_id ?>&tanggal=<?= $tanggal ?>" class="btn btn-primary">
+                        <!-- <a href="edit.php?jadwal_id=<?= $jadwal_id ?>&tanggal=<?= $tanggal ?>" class="btn btn-primary">
                             <i class="fas fa-edit"></i> Edit Absensi
+                        </a> -->
+                        <a href="index.php" class="btn btn-primary">
+                            <i class="fas fa-edit"></i> Daftar Absensi
                         </a>
+
                         <a href="../jadwal/" class="btn btn-secondary">
                             <i class="fas fa-arrow-left"></i> Kembali ke Jadwal
                         </a>

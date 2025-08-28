@@ -1,122 +1,113 @@
 <?php
-require_once '../../../includes/auth.php';
+require_once __DIR__ . '/../../../includes/auth.php';
 if (!isAdmin()) {
     header('Location: /sis-absensi-smp/login.php');
     exit;
 }
 
-// Filter parameter
-$kelas_id = $_GET['kelas_id'] ?? null;
-$mapel_id = $_GET['mapel_id'] ?? null;
+// Ambil semua kelas (admin bisa melihat semua kelas)
+$stmt = $pdo->query("SELECT kelas_id, nama_kelas FROM kelas ORDER BY nama_kelas");
+$kelas = $stmt->fetchAll();
+
+// Ambil semua mata pelajaran (admin bisa melihat semua mapel)
+$stmt = $pdo->query("SELECT mapel_id, nama_mapel FROM mata_pelajaran ORDER BY nama_mapel");
+$mapel = $stmt->fetchAll();
+
+// Proses filter laporan
+$kelas_id = $_GET['kelas_id'] ?? '';
+$mapel_id = $_GET['mapel_id'] ?? '';
 $bulan = $_GET['bulan'] ?? date('Y-m');
-$semester = $_GET['semester'] ?? null;
-$tahun = $_GET['tahun'] ?? date('Y');
-$tipe_laporan = $_GET['tipe'] ?? 'harian';
 
-// Ambil data untuk filter
-$stmt_kelas = $pdo->query("SELECT * FROM kelas ORDER BY nama_kelas");
-$kelas_list = $stmt_kelas->fetchAll();
-
-$stmt_mapel = $pdo->query("SELECT * FROM mata_pelajaran ORDER BY nama_mapel");
-$mapel_list = $stmt_mapel->fetchAll();
-
-// Generate tahun options (3 tahun terakhir dan 2 tahun ke depan)
-$current_year = date('Y');
-$years = range($current_year - 3, $current_year + 2);
-
-// Query berdasarkan filter
 $where = [];
 $params = [];
 
-if ($kelas_id) {
-    if ($tipe_laporan == 'mapel') {
-        $where[] = "mu.kelas_id = ?";
-    } else {
-        $where[] = "m.kelas_id = ?";
-    }
+// Hanya tambahkan filter jika dipilih (admin bisa melihat semua)
+if (!empty($kelas_id)) {
+    $where[] = "j.kelas_id = ?";
     $params[] = $kelas_id;
 }
 
-if ($mapel_id) {
+if (!empty($mapel_id)) {
     $where[] = "j.mapel_id = ?";
     $params[] = $mapel_id;
 }
 
-// Filter berdasarkan periode
-if ($semester) {
-    if ($semester == 1) {
-        $where[] = "(MONTH(a.tanggal) BETWEEN 1 AND 6)";
-    } else {
-        $where[] = "(MONTH(a.tanggal) BETWEEN 7 AND 12)";
-    }
-    $where[] = "YEAR(a.tanggal) = ?";
-    $params[] = $tahun;
-} else {
-    // Default filter bulan jika tidak memilih semester
-    $where[] = "DATE_FORMAT(a.tanggal, '%Y-%m') = ?";
-    $params[] = $bulan;
-}
+// Tambahkan filter bulan
+$where[] = "DATE_FORMAT(a.tanggal, '%Y-%m') = ?";
+$params[] = $bulan;
 
-$where_clause = $where ? "WHERE " . implode(" AND ", $where) : "";
+$where_clause = !empty($where) ? "WHERE " . implode(" AND ", $where) : "";
 
-// Laporan Harian
-if ($tipe_laporan == 'harian') {
-    $sql = "SELECT a.tanggal, 
-                   COUNT(CASE WHEN a.status = 'hadir' THEN 1 END) as hadir,
-                   COUNT(CASE WHEN a.status = 'sakit' THEN 1 END) as sakit,
-                   COUNT(CASE WHEN a.status = 'izin' THEN 1 END) as izin,
-                   COUNT(CASE WHEN a.status = 'alpha' THEN 1 END) as alpha,
-                   COUNT(*) as total
-            FROM absensi a
-            JOIN murid m ON a.murid_id = m.murid_id
-            JOIN jadwal_pelajaran j ON a.jadwal_id = j.jadwal_id
-            $where_clause
-            GROUP BY a.tanggal
-            ORDER BY a.tanggal DESC";
-}
+// Query untuk rekap absensi (ringkasan) - admin melihat semua
+$query = "SELECT
+        a.tanggal,
+        m.nama_mapel,
+        k.nama_kelas,
+        u.full_name as nama_guru,
+        COUNT(CASE WHEN a.status = 'hadir' THEN 1 END) as hadir,
+        COUNT(CASE WHEN a.status = 'sakit' THEN 1 END) as sakit,
+        COUNT(CASE WHEN a.status = 'izin' THEN 1 END) as izin,
+        COUNT(CASE WHEN a.status = 'alpha' THEN 1 END) as alpha,
+        COUNT(*) as total
+        FROM absensi a
+        JOIN jadwal_pelajaran j ON a.jadwal_id = j.jadwal_id
+        JOIN mata_pelajaran m ON j.mapel_id = m.mapel_id
+        JOIN kelas k ON j.kelas_id = k.kelas_id
+        JOIN users u ON j.guru_id = u.user_id
+        $where_clause
+        GROUP BY a.tanggal, m.nama_mapel, k.nama_kelas, u.full_name
+        ORDER BY a.tanggal DESC";
 
-// Laporan Per Mata Pelajaran
-elseif ($tipe_laporan == 'mapel') {
-    $sql = "SELECT m.nama_mapel,
-                   COUNT(CASE WHEN a.status = 'hadir' THEN 1 END) as hadir,
-                   COUNT(CASE WHEN a.status = 'sakit' THEN 1 END) as sakit,
-                   COUNT(CASE WHEN a.status = 'izin' THEN 1 END) as izin,
-                   COUNT(CASE WHEN a.status = 'alpha' THEN 1 END) as alpha,
-                   COUNT(*) as total
-            FROM absensi a
-            JOIN jadwal_pelajaran j ON a.jadwal_id = j.jadwal_id
-            JOIN mata_pelajaran m ON j.mapel_id = m.mapel_id
-            JOIN murid mu ON a.murid_id = mu.murid_id
-            $where_clause
-            GROUP BY m.mapel_id
-            ORDER BY m.nama_mapel";
-}
 
-// Laporan Per Kelas
-elseif ($tipe_laporan == 'kelas') {
-    $sql = "SELECT k.nama_kelas,
-                   COUNT(CASE WHEN a.status = 'hadir' THEN 1 END) as hadir,
-                   COUNT(CASE WHEN a.status = 'sakit' THEN 1 END) as sakit,
-                   COUNT(CASE WHEN a.status = 'izin' THEN 1 END) as izin,
-                   COUNT(CASE WHEN a.status = 'alpha' THEN 1 END) as alpha,
-                   COUNT(*) as total
-            FROM absensi a
-            JOIN murid m ON a.murid_id = m.murid_id
-            JOIN kelas k ON m.kelas_id = k.kelas_id
-            $where_clause
-            GROUP BY k.kelas_id
-            ORDER BY k.nama_kelas";
-}
-
-$stmt = $pdo->prepare($sql);
+$stmt = $pdo->prepare($query);
 $stmt->execute($params);
-$laporan = $stmt->fetchAll();
+$rekap = $stmt->fetchAll();
 
-// Untuk select kelas dan mapel di form
-$selected_kelas = $kelas_id;
-$selected_mapel = $mapel_id;
-$selected_semester = $semester;
-$selected_tahun = $tahun;
+// Query untuk detail absensi per hari - admin melihat semua
+$query_detail = "SELECT
+                a.tanggal,
+                m.nama_mapel,
+                k.nama_kelas,
+                u.full_name as nama_guru,
+                mu.nis,
+                mu.nama_lengkap,
+                a.status,
+                a.keterangan
+                FROM absensi a
+                JOIN jadwal_pelajaran j ON a.jadwal_id = j.jadwal_id
+                JOIN mata_pelajaran m ON j.mapel_id = m.mapel_id
+                JOIN kelas k ON j.kelas_id = k.kelas_id
+                JOIN users u ON j.guru_id = u.user_id
+                JOIN murid mu ON a.murid_id = mu.murid_id
+                $where_clause
+                ORDER BY a.tanggal DESC, mu.nama_lengkap ASC";
+
+
+$stmt_detail = $pdo->prepare($query_detail);
+$stmt_detail->execute($params);
+$detail_absensi = $stmt_detail->fetchAll();
+
+// Organisasi data detail per tanggal, mapel, dan kelas
+$absensi_per_tanggal = [];
+foreach ($detail_absensi as $detail) {
+    $key = $detail['tanggal'] . '_' . $detail['nama_mapel'] . '_' . $detail['nama_kelas'] . '_' . $detail['nama_guru'];
+    if (!isset($absensi_per_tanggal[$key])) {
+        $absensi_per_tanggal[$key] = [];
+    }
+    $absensi_per_tanggal[$key][] = $detail;
+}
+
+// Hitung total
+$total_hadir = 0;
+$total_sakit = 0;
+$total_izin = 0;
+$total_alpha = 0;
+foreach ($rekap as $r) {
+    $total_hadir += $r['hadir'];
+    $total_sakit += $r['sakit'];
+    $total_izin += $r['izin'];
+    $total_alpha += $r['alpha'];
+}
 ?>
 
 <?php include '../../../includes/header.php'; ?>
@@ -145,177 +136,202 @@ $selected_tahun = $tahun;
                 <section class="row">
                     <!-- Main content start -->
 
-                    <!-- Filter Form -->
-                    <div class="card mb-4">
+                    <div class="card mb-4 shadow-sm">
+                        <div class="card-header">
+                            <h6 class="mb-0">Filter Laporan</h6>
+                        </div>
                         <div class="card-body">
-                            <form method="get" class="row g-3" id="filterForm">
+                            <form method="GET" class="row g-2 align-items-end">
+                                <!-- Hapus hidden dari filter kelas dan mapel -->
                                 <div class="col-md-3">
-                                    <label class="form-label">Tipe Laporan</label>
-                                    <select name="tipe" class="form-select" id="tipeSelect">
-                                        <option value="harian" <?= $tipe_laporan == 'harian' ? 'selected' : '' ?>>Harian</option>
-                                        <option value="mapel" <?= $tipe_laporan == 'mapel' ? 'selected' : '' ?>>Per Mata Pelajaran</option>
-                                        <option value="kelas" <?= $tipe_laporan == 'kelas' ? 'selected' : '' ?>>Per Kelas</option>
-                                    </select>
-                                </div>
-
-                                <div class="col-md-3" id="kelasField">
-                                    <label class="form-label">Kelas</label>
-                                    <select name="kelas_id" class="form-select">
+                                    <label for="kelas_id" class="form-label">Kelas</label>
+                                    <select name="kelas_id" id="kelas_id" class="form-select">
                                         <option value="">Semua Kelas</option>
-                                        <?php foreach ($kelas_list as $k): ?>
-                                            <option value="<?= $k['kelas_id'] ?>" <?= $selected_kelas == $k['kelas_id'] ? 'selected' : '' ?>>
-                                                <?= $k['nama_kelas'] ?>
+                                        <?php foreach ($kelas as $k): ?>
+                                            <option value="<?= $k['kelas_id'] ?>" <?= ($k['kelas_id'] == $kelas_id) ? 'selected' : '' ?>>
+                                                <?= htmlspecialchars($k['nama_kelas']) ?>
                                             </option>
                                         <?php endforeach; ?>
                                     </select>
                                 </div>
 
-                                <div class="col-md-3" id="mapelField">
-                                    <label class="form-label">Mata Pelajaran</label>
-                                    <select name="mapel_id" class="form-select">
+                                <div class="col-md-3">
+                                    <label for="mapel_id" class="form-label">Mata Pelajaran</label>
+                                    <select name="mapel_id" id="mapel_id" class="form-select">
                                         <option value="">Semua Mapel</option>
-                                        <?php foreach ($mapel_list as $m): ?>
-                                            <option value="<?= $m['mapel_id'] ?>" <?= $selected_mapel == $m['mapel_id'] ? 'selected' : '' ?>>
-                                                <?= $m['nama_mapel'] ?>
+                                        <?php foreach ($mapel as $m): ?>
+                                            <option value="<?= $m['mapel_id'] ?>" <?= ($m['mapel_id'] == $mapel_id) ? 'selected' : '' ?>>
+                                                <?= htmlspecialchars($m['nama_mapel']) ?>
                                             </option>
                                         <?php endforeach; ?>
                                     </select>
                                 </div>
 
-                                <div class="col-md-2">
-                                    <label class="form-label">Periode</label>
-                                    <select name="semester" class="form-select" id="semesterSelect">
-                                        <option value="">Pilih Periode</option>
-                                        <option value="1" <?= $selected_semester == '1' ? 'selected' : '' ?>>Semester 1 (Jan-Jun)</option>
-                                        <option value="2" <?= $selected_semester == '2' ? 'selected' : '' ?>>Semester 2 (Jul-Des)</option>
-                                    </select>
+                                <div class="col-md-3">
+                                    <label for="bulan" class="form-label">Bulan</label>
+                                    <input type="month" name="bulan" id="bulan" class="form-control" value="<?= $bulan ?>">
                                 </div>
 
-                                <div class="col-md-2" id="tahunField">
-                                    <label class="form-label">Tahun</label>
-                                    <select name="tahun" class="form-select">
-                                        <?php foreach ($years as $year): ?>
-                                            <option value="<?= $year ?>" <?= $selected_tahun == $year ? 'selected' : '' ?>>
-                                                <?= $year ?>
-                                            </option>
-                                        <?php endforeach; ?>
-                                    </select>
+                                <div class="col-md-3 d-flex gap-2">
+                                    <button type="submit" class="btn btn-primary w-100">
+                                        <i class="fas fa-filter me-1"></i> Filter
+                                    </button>
+                                    <a href="index.php" class="btn btn-secondary w-100">
+                                        <i class="fas fa-sync-alt me-1"></i> Reset
+                                    </a>
                                 </div>
-
-                                <div class="col-md-2" id="bulanField">
-                                    <label class="form-label">Bulan</label>
-                                    <input type="month" name="bulan" value="<?= $bulan ?>" class="form-control">
-                                </div>
-
-                                <div class="col-md-2 d-flex align-items-end">
-                                    <button type="submit" class="btn btn-primary w-50">Filter</button>
-                                    <a href="index.php" class="btn btn-secondary w-50 ms-3">Reset</a>
-                                </div>
-
                             </form>
                         </div>
                     </div>
 
-                    <!-- Script to toggle visibility -->
-                    <script>
-                        function toggleFields() {
-                            const tipe = document.getElementById('tipeSelect').value;
-                            const kelasField = document.getElementById('kelasField');
-                            const mapelField = document.getElementById('mapelField');
-                            const semesterSelect = document.getElementById('semesterSelect');
-                            const bulanField = document.getElementById('bulanField');
-                            const tahunField = document.getElementById('tahunField');
-
-                            // Tampilkan sesuai tipe
-                            kelasField.style.display = (tipe === 'kelas') ? 'block' : 'none';
-                            mapelField.style.display = (tipe === 'mapel') ? 'block' : 'none';
-
-                            // Toggle bulan/semester field
-                            if (semesterSelect.value) {
-                                bulanField.style.display = 'none';
-                                tahunField.style.display = 'block';
-                            } else {
-                                bulanField.style.display = 'block';
-                                tahunField.style.display = 'none';
-                            }
-                        }
-
-                        document.addEventListener('DOMContentLoaded', function() {
-                            document.getElementById('tipeSelect').addEventListener('change', toggleFields);
-                            document.getElementById('semesterSelect').addEventListener('change', toggleFields);
-                            toggleFields(); // jalankan saat pertama kali load halaman
-                        });
-                    </script>
-
-
-                    <!-- Tabel Laporan -->
-                    <div class="card">
-                        <div class="card-body">
-                            <?php if (empty($laporan)): ?>
-                                <div class="alert alert-info">Tidak ada data absensi untuk filter yang dipilih</div>
+                    <div class="card shadow-sm">
+                        <div class="card-header">
+                            <h5 class="mb-0">Rekap Absensi</h5>
+                        </div>
+                        <div class="card-body p-3">
+                            <?php if (empty($rekap)): ?>
+                                <div class="alert alert-warning mb-0">Tidak ada data absensi untuk filter yang dipilih.</div>
                             <?php else: ?>
                                 <div class="table-responsive">
-                                    <table class="table table-striped">
-                                        <thead>
+                                    <table class="table table-sm table-bordered table-hover align-middle text-center mb-2">
+                                        <thead class="table-light">
                                             <tr>
-                                                <th>No</th>
-                                                <?php if ($tipe_laporan == 'harian'): ?>
-                                                    <th>Tanggal</th>
-                                                <?php elseif ($tipe_laporan == 'mapel'): ?>
-                                                    <th>Mata Pelajaran</th>
-                                                <?php elseif ($tipe_laporan == 'kelas'): ?>
-                                                    <th>Kelas</th>
-                                                <?php endif; ?>
-                                                <th>Hadir</th>
-                                                <th>Sakit</th>
-                                                <th>Izin</th>
-                                                <th>Alpha</th>
+                                                <th>Tanggal</th>
+                                                <th>Mapel</th>
+                                                <th>Kelas</th>
+                                                <th>Guru</th>
+                                                <th class="text-success">Hadir</th>
+                                                <th class="text-warning">Sakit</th>
+                                                <th class="text-info">Izin</th>
+                                                <th class="text-danger">Alpha</th>
                                                 <th>Total</th>
-                                                <th>Persentase Hadir</th>
+                                                <th>Aksi</th>
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            <?php foreach ($laporan as $i => $row): ?>
+                                            <?php foreach ($rekap as $r):
+                                                $key = $r['tanggal'] . '_' . $r['nama_mapel'] . '_' . $r['nama_kelas'] . '_' . $r['nama_guru'];
+                                                $has_detail = isset($absensi_per_tanggal[$key]) && !empty($absensi_per_tanggal[$key]);
+                                            ?>
                                                 <tr>
-                                                    <td><?= $i + 1 ?></td>
+                                                    <td><?= date('d/m/Y', strtotime($r['tanggal'])) ?></td>
+                                                    <td><?= htmlspecialchars($r['nama_mapel']) ?></td>
+                                                    <td><?= htmlspecialchars($r['nama_kelas']) ?></td>
+                                                    <td><?= htmlspecialchars($r['nama_guru']) ?></td>
+                                                    <td><?= $r['hadir'] ?></td>
+                                                    <td><?= $r['sakit'] ?></td>
+                                                    <td><?= $r['izin'] ?></td>
+                                                    <td><?= $r['alpha'] ?></td>
+                                                    <td><strong><?= $r['total'] ?></strong></td>
                                                     <td>
-                                                        <?php if ($tipe_laporan == 'harian'): ?>
-                                                            <?= date('d/m/Y', strtotime($row['tanggal'])) ?>
-                                                        <?php elseif ($tipe_laporan == 'mapel'): ?>
-                                                            <?= $row['nama_mapel'] ?>
-                                                        <?php elseif ($tipe_laporan == 'kelas'): ?>
-                                                            <?= $row['nama_kelas'] ?>
+                                                        <?php if ($has_detail): ?>
+                                                            <button class="btn btn-sm btn-primary btn-detail" data-key="<?= htmlspecialchars($key) ?>">
+                                                                <i class="fas fa-eye me-1"></i> Detail
+                                                            </button>
+                                                        <?php else: ?>
+                                                            <span class="text-muted">-</span>
                                                         <?php endif; ?>
-                                                    </td>
-                                                    <td><?= $row['hadir'] ?></td>
-                                                    <td><?= $row['sakit'] ?></td>
-                                                    <td><?= $row['izin'] ?></td>
-                                                    <td><?= $row['alpha'] ?></td>
-                                                    <td><?= $row['total'] ?></td>
-                                                    <td>
-                                                        <?= $row['total'] > 0 ? round(($row['hadir'] / $row['total']) * 100, 2) : 0 ?>%
                                                     </td>
                                                 </tr>
                                             <?php endforeach; ?>
                                         </tbody>
                                     </table>
                                 </div>
-
-                                <div class="mt-3">
-                                    <?php
-                                    $export_url = "export.php?" . http_build_query($_GET);
-                                    $pdf_url = "pdf.php?" . http_build_query($_GET);
-                                    ?>
-                                    <a href="<?= $export_url ?>" class="btn btn-success">
-                                        <i class="fas fa-file-excel"></i> Export ke Excel
-                                    </a>
-                                    <a href="<?= $pdf_url ?>" class="btn btn-danger">
-                                        <i class="fas fa-file-pdf"></i> Cetak PDF
-                                    </a>
-                                </div>
                             <?php endif; ?>
                         </div>
                     </div>
+
+
+
+                    <!-- Modal untuk detail absensi -->
+                    <div class="modal fade" id="detailModal" tabindex="-1" aria-hidden="true">
+                        <div class="modal-dialog modal-lg">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="modalTitle">Detail Absensi</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body" id="modalBody">
+                                    <!-- Konten akan diisi oleh JavaScript -->
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <script>
+                        // Konversi data PHP ke JavaScript
+                        const absensiDetail = <?= json_encode($absensi_per_tanggal) ?>;
+                        const rekapData = <?= json_encode($rekap) ?>;
+
+                        document.querySelectorAll('.btn-detail').forEach(button => {
+                            button.addEventListener('click', function() {
+                                const key = this.getAttribute('data-key');
+                                const modalTitle = document.getElementById('modalTitle');
+                                const modalBody = document.getElementById('modalBody');
+
+                                // Cari data rekap yang sesuai
+                                const rekapItem = rekapData.find(item =>
+                                    (item.tanggal + '_' + item.nama_mapel + '_' + item.nama_kelas + '_' + item.nama_guru) === key
+                                );
+
+                                if (rekapItem && absensiDetail[key]) {
+                                    // Set judul modal
+                                    modalTitle.textContent = `Detail Absensi - ${rekapItem.nama_mapel} - ${rekapItem.nama_kelas} - ${rekapItem.nama_guru} - ${rekapItem.tanggal}`;
+
+                                    // Buat konten tabel
+                                    let tableContent = `
+                    <div class="table-responsive">
+                        <table class="table table-sm table-bordered">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>NIS</th>
+                                    <th>Nama Murid</th>
+                                    <th>Status</th>
+                                    <th>Keterangan</th>
+                                </tr>
+                            </thead>
+                            <tbody>`;
+
+                                    // Tambahkan baris untuk setiap murid
+                                    absensiDetail[key].forEach(detail => {
+                                        let statusClass = '';
+                                        switch (detail.status) {
+                                            case 'hadir':
+                                                statusClass = 'text-success fw-bold';
+                                                break;
+                                            case 'sakit':
+                                                statusClass = 'text-warning fw-bold';
+                                                break;
+                                            case 'izin':
+                                                statusClass = 'text-info fw-bold';
+                                                break;
+                                            case 'alpha':
+                                                statusClass = 'text-danger fw-bold';
+                                                break;
+                                        }
+
+                                        tableContent += `
+                        <tr>
+                            <td>${detail.nis}</td>
+                            <td>${detail.nama_lengkap}</td>
+                            <td class="${statusClass}">${detail.status.toUpperCase()}</td>
+                            <td>${detail.keterangan || '-'}</td>
+                        </tr>`;
+                                    });
+
+                                    tableContent += `</tbody></table></div>`;
+                                    modalBody.innerHTML = tableContent;
+
+                                    // Tampilkan modal
+                                    const modal = new bootstrap.Modal(document.getElementById('detailModal'));
+                                    modal.show();
+                                }
+                            });
+                        });
+                    </script>
 
                     <!-- Main content end -->
                 </section>

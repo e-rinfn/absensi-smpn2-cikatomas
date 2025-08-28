@@ -43,7 +43,8 @@ if (!empty($mapel_id)) {
 
 $where_clause = !empty($where) ? "AND " . implode(" AND ", $where) : "";
 
-// Query untuk rekap absensi
+
+// Query untuk rekap absensi (ringkasan)
 $query = "SELECT
         a.tanggal,
         m.nama_mapel,
@@ -66,6 +67,39 @@ $query = "SELECT
 $stmt = $pdo->prepare($query);
 $stmt->execute(array_merge($params, [$bulan]));
 $rekap = $stmt->fetchAll();
+
+// Query untuk detail absensi per hari
+$query_detail = "SELECT
+                a.tanggal,
+                m.nama_mapel,
+                k.nama_kelas,
+                mu.nis,
+                mu.nama_lengkap,
+                a.status,
+                a.keterangan
+                FROM absensi a
+                JOIN jadwal_pelajaran j ON a.jadwal_id = j.jadwal_id
+                JOIN mata_pelajaran m ON j.mapel_id = m.mapel_id
+                JOIN kelas k ON j.kelas_id = k.kelas_id
+                JOIN murid mu ON a.murid_id = mu.murid_id
+                WHERE j.guru_id = ?
+                AND DATE_FORMAT(a.tanggal, '%Y-%m') = ?
+                $where_clause
+                ORDER BY a.tanggal DESC, mu.nama_lengkap ASC";
+
+$stmt_detail = $pdo->prepare($query_detail);
+$stmt_detail->execute(array_merge($params, [$bulan]));
+$detail_absensi = $stmt_detail->fetchAll();
+
+// Organisasi data detail per tanggal, mapel, dan kelas
+$absensi_per_tanggal = [];
+foreach ($detail_absensi as $detail) {
+    $key = $detail['tanggal'] . '_' . $detail['nama_mapel'] . '_' . $detail['nama_kelas'];
+    if (!isset($absensi_per_tanggal[$key])) {
+        $absensi_per_tanggal[$key] = [];
+    }
+    $absensi_per_tanggal[$key][] = $detail;
+}
 
 // Hitung total
 $total_hadir = 0;
@@ -113,7 +147,7 @@ foreach ($rekap as $r) {
                         </div>
                         <div class="card-body">
                             <form method="GET" class="row g-2 align-items-end">
-                                <div class="col-md-3">
+                                <div class="col-md-3" hidden>
                                     <label for="kelas_id" class="form-label">Kelas</label>
                                     <select name="kelas_id" id="kelas_id" class="form-select">
                                         <option value="">Semua Kelas</option>
@@ -125,7 +159,7 @@ foreach ($rekap as $r) {
                                     </select>
                                 </div>
 
-                                <div class="col-md-3">
+                                <div class="col-md-3" hidden>
                                     <label for="mapel_id" class="form-label">Mata Pelajaran</label>
                                     <select name="mapel_id" id="mapel_id" class="form-select">
                                         <option value="">Semua Mapel</option>
@@ -154,44 +188,9 @@ foreach ($rekap as $r) {
                         </div>
                     </div>
 
-
-                    <div class="card mb-4 shadow-sm">
-                        <div class="card-header">
-                            <h5 class="mb-0">Statistik Absensi</h5>
-                        </div>
-                        <div class="card-body py-3">
-                            <div class="row text-center g-2">
-                                <div class="col-6 col-md-3">
-                                    <div class="p-2 rounded text-white bg-success">
-                                        <h6 class="mb-1">Hadir</h6>
-                                        <p class="h3 mb-0"><?= $total_hadir ?></p>
-                                    </div>
-                                </div>
-                                <div class="col-6 col-md-3">
-                                    <div class="p-2 rounded text-dark bg-warning">
-                                        <h6 class="mb-1">Sakit</h6>
-                                        <p class="h3 mb-0"><?= $total_sakit ?></p>
-                                    </div>
-                                </div>
-                                <div class="col-6 col-md-3">
-                                    <div class="p-2 rounded text-white bg-info">
-                                        <h6 class="mb-1">Izin</h6>
-                                        <p class="h3 mb-0"><?= $total_izin ?></p>
-                                    </div>
-                                </div>
-                                <div class="col-6 col-md-3">
-                                    <div class="p-2 rounded text-white bg-danger">
-                                        <h6 class="mb-1">Alpha</h6>
-                                        <p class="h3 mb-0"><?= $total_alpha ?></p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
                     <div class="card shadow-sm">
                         <div class="card-header">
-                            <h5 class="mb-0">Detail Absensi</h5>
+                            <h5 class="mb-0">Rekap Absensi</h5>
                         </div>
                         <div class="card-body p-3">
                             <?php if (empty($rekap)): ?>
@@ -209,10 +208,14 @@ foreach ($rekap as $r) {
                                                 <th class="text-info">Izin</th>
                                                 <th class="text-danger">Alpha</th>
                                                 <th>Total</th>
+                                                <th>Aksi</th>
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            <?php foreach ($rekap as $r): ?>
+                                            <?php foreach ($rekap as $r):
+                                                $key = $r['tanggal'] . '_' . $r['nama_mapel'] . '_' . $r['nama_kelas'];
+                                                $has_detail = isset($absensi_per_tanggal[$key]) && !empty($absensi_per_tanggal[$key]);
+                                            ?>
                                                 <tr>
                                                     <td><?= date('d/m/Y', strtotime($r['tanggal'])) ?></td>
                                                     <td><?= htmlspecialchars($r['nama_mapel']) ?></td>
@@ -222,21 +225,203 @@ foreach ($rekap as $r) {
                                                     <td><?= $r['izin'] ?></td>
                                                     <td><?= $r['alpha'] ?></td>
                                                     <td><strong><?= $r['total'] ?></strong></td>
+                                                    <td>
+                                                        <?php if ($has_detail): ?>
+                                                            <button class="btn btn-sm btn-primary btn-detail" data-key="<?= htmlspecialchars($key) ?>">
+                                                                <i class="fas fa-eye me-1"></i> Detail
+                                                            </button>
+                                                        <?php else: ?>
+                                                            <span class="text-muted">-</span>
+                                                        <?php endif; ?>
+                                                    </td>
                                                 </tr>
                                             <?php endforeach; ?>
                                         </tbody>
                                     </table>
                                 </div>
-
-                                <!-- <div class="text-end">
-                                    <a href="export.php?<?= http_build_query($_GET) ?>" class="btn btn-sm btn-success">
-                                        <i class="fas fa-file-excel"></i> Export ke Excel
-                                    </a>
-                                </div> -->
                             <?php endif; ?>
                         </div>
                     </div>
 
+                    <!-- Modal untuk detail absensi -->
+                    <div class="modal fade" id="detailModal" tabindex="-1" aria-hidden="true">
+                        <div class="modal-dialog modal-lg">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="modalTitle">Detail Absensi</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body" id="modalBody">
+                                    <!-- Konten akan diisi oleh JavaScript -->
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <script>
+                        // Konversi data PHP ke JavaScript
+                        const absensiDetail = <?= json_encode($absensi_per_tanggal) ?>;
+                        const rekapData = <?= json_encode($rekap) ?>;
+
+                        document.querySelectorAll('.btn-detail').forEach(button => {
+                            button.addEventListener('click', function() {
+                                const key = this.getAttribute('data-key');
+                                const modalTitle = document.getElementById('modalTitle');
+                                const modalBody = document.getElementById('modalBody');
+
+                                // Cari data rekap yang sesuai
+                                const rekapItem = rekapData.find(item =>
+                                    (item.tanggal + '_' + item.nama_mapel + '_' + item.nama_kelas) === key
+                                );
+
+                                if (rekapItem && absensiDetail[key]) {
+                                    // Set judul modal
+                                    modalTitle.textContent = `Detail Absensi - ${rekapItem.nama_mapel} - ${rekapItem.nama_kelas} - ${rekapItem.tanggal}`;
+
+                                    // Buat konten tabel
+                                    let tableContent = `
+                    <div class="table-responsive">
+                        <table class="table table-sm table-bordered">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>NIS</th>
+                                    <th>Nama Murid</th>
+                                    <th>Status</th>
+                                    <th>Keterangan</th>
+                                </tr>
+                            </thead>
+                            <tbody>`;
+
+                                    // Tambahkan baris untuk setiap murid
+                                    absensiDetail[key].forEach(detail => {
+                                        let statusClass = '';
+                                        switch (detail.status) {
+                                            case 'hadir':
+                                                statusClass = 'text-success fw-bold';
+                                                break;
+                                            case 'sakit':
+                                                statusClass = 'text-warning fw-bold';
+                                                break;
+                                            case 'izin':
+                                                statusClass = 'text-info fw-bold';
+                                                break;
+                                            case 'alpha':
+                                                statusClass = 'text-danger fw-bold';
+                                                break;
+                                        }
+
+                                        tableContent += `
+                        <tr>
+                            <td>${detail.nis}</td>
+                            <td>${detail.nama_lengkap}</td>
+                            <td class="${statusClass}">${detail.status.toUpperCase()}</td>
+                            <td>${detail.keterangan || '-'}</td>
+                        </tr>`;
+                                    });
+
+                                    tableContent += `</tbody></table></div>`;
+                                    modalBody.innerHTML = tableContent;
+
+                                    // Tampilkan modal
+                                    const modal = new bootstrap.Modal(document.getElementById('detailModal'));
+                                    modal.show();
+                                }
+                            });
+                        });
+                    </script>
+
+                    <!-- Modal untuk detail -->
+                    <div class="modal fade" id="detailModal" tabindex="-1" aria-hidden="true">
+                        <div class="modal-dialog modal-lg">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="modalTitle">Detail Absensi</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body" id="modalBody">
+                                    <!-- Konten akan diisi oleh JavaScript -->
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <script>
+                        // Konversi data PHP ke JavaScript
+                        const absensiDetail = <?= json_encode($absensi_per_tanggal) ?>;
+                        const rekapData = <?= json_encode($rekap) ?>;
+
+                        document.querySelectorAll('.btn-detail').forEach(button => {
+                            button.addEventListener('click', function() {
+                                const key = this.getAttribute('data-key');
+                                const modalTitle = document.getElementById('modalTitle');
+                                const modalBody = document.getElementById('modalBody');
+
+                                // Cari data rekap yang sesuai
+                                const rekapItem = rekapData.find(item =>
+                                    (item.tanggal + '_' + item.nama_mapel + '_' + item.nama_kelas) === key
+                                );
+
+                                if (rekapItem && absensiDetail[key]) {
+                                    // Set judul modal
+                                    modalTitle.textContent = `Detail Absensi - ${rekapItem.nama_mapel} - ${rekapItem.nama_kelas} - ${rekapItem.tanggal}`;
+
+                                    // Buat konten tabel
+                                    let tableContent = `
+                <div class="table-responsive">
+                    <table class="table table-sm table-bordered">
+                        <thead class="table-light">
+                            <tr>
+                                <th>NIS</th>
+                                <th>Nama Murid</th>
+                                <th>Status</th>
+                                <th>Keterangan</th>
+                            </tr>
+                        </thead>
+                        <tbody>`;
+
+                                    // Tambahkan baris untuk setiap murid
+                                    absensiDetail[key].forEach(detail => {
+                                        let statusClass = '';
+                                        switch (detail.status) {
+                                            case 'hadir':
+                                                statusClass = 'text-success fw-bold';
+                                                break;
+                                            case 'sakit':
+                                                statusClass = 'text-warning fw-bold';
+                                                break;
+                                            case 'izin':
+                                                statusClass = 'text-info fw-bold';
+                                                break;
+                                            case 'alpha':
+                                                statusClass = 'text-danger fw-bold';
+                                                break;
+                                        }
+
+                                        tableContent += `
+                    <tr>
+                        <td>${detail.nis}</td>
+                        <td>${detail.nama_lengkap}</td>
+                        <td class="${statusClass}">${detail.status.toUpperCase()}</td>
+                        <td>${detail.keterangan || '-'}</td>
+                    </tr>`;
+                                    });
+
+                                    tableContent += `</tbody></table></div>`;
+                                    modalBody.innerHTML = tableContent;
+
+                                    // Tampilkan modal
+                                    const modal = new bootstrap.Modal(document.getElementById('detailModal'));
+                                    modal.show();
+                                }
+                            });
+                        });
+                    </script>
 
                     <!-- Main content end -->
                 </section>
