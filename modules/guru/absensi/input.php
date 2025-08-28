@@ -153,12 +153,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <?php endif; ?>
 
 
-                    <?php if (!empty($errors['database'])): ?>
+                    <!-- <?php if (!empty($errors['database'])): ?>
                         <div class="alert alert-danger alert-dismissible fade show" role="alert">
                             <?= htmlspecialchars($errors['database']) ?>
                             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                         </div>
-                    <?php endif; ?>
+                    <?php endif; ?> -->
 
                     <div class="card mb-3 shadow-sm mx-3 w-50">
                         <div class="card-body py-2 px-3">
@@ -187,11 +187,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             </div>
                         </div>
 
-                        <?php if (isset($errors['absensi'])): ?>
+                        <!-- <?php if (isset($errors['absensi'])): ?>
                             <div class="alert alert-warning py-2">
                                 <?= htmlspecialchars($errors['absensi']) ?>
                             </div>
-                        <?php endif; ?>
+                        <?php endif; ?> -->
 
                         <div class="card shadow-sm">
                             <div class="card-header py-2">
@@ -264,21 +264,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                                             });
 
                                                             // Validasi form sebelum submit
-                                                            document.querySelector('form').addEventListener('submit', function(e) {
-                                                                let allFilled = true;
-                                                                document.querySelectorAll('input[name^="absensi["]').forEach(input => {
-                                                                    if (!input.value) {
-                                                                        allFilled = false;
-                                                                        // Highlight baris yang belum diisi
-                                                                        input.closest('tr').classList.add('table-danger');
-                                                                    }
-                                                                });
+                                                            // document.querySelector('form').addEventListener('submit', function(e) {
+                                                            //     let allFilled = true;
+                                                            //     document.querySelectorAll('input[name^="absensi["]').forEach(input => {
+                                                            //         if (!input.value) {
+                                                            //             allFilled = false;
+                                                            //             // Highlight baris yang belum diisi
+                                                            //             input.closest('tr').classList.add('table-danger');
+                                                            //         }
+                                                            //     });
 
-                                                                if (!allFilled) {
-                                                                    e.preventDefault();
-                                                                    alert('Harap isi status absensi untuk semua murid!');
-                                                                }
-                                                            });
+                                                            //     if (!allFilled) {
+                                                            //         e.preventDefault();
+                                                            //         alert('Harap isi status absensi untuk semua murid!');
+                                                            //     }
+                                                            // });
                                                         });
                                                     </script>
 
@@ -305,41 +305,53 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     </form>
 
 
-                    <!-- JavaScript untuk validasi client-side -->
+                    <!-- Tambahkan library SweetAlert2 -->
+                    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
                     <script>
                         document.addEventListener('DOMContentLoaded', function() {
-                            const form = document.getElementById('formAbsensi');
-                            const statusSelects = document.querySelectorAll('.status-select');
+                            // Event listener untuk tombol absensi (tetap sama)
+                            document.querySelectorAll('.absensi-btn').forEach(button => {
+                                button.addEventListener('click', function() {
+                                    const muridId = this.getAttribute('data-murid-id');
+                                    const status = this.getAttribute('data-status');
 
-                            form.addEventListener('submit', function(e) {
-                                let isValid = true;
+                                    const buttonGroup = this.closest('.btn-group');
+                                    buttonGroup.querySelectorAll('.absensi-btn').forEach(btn => {
+                                        btn.classList.remove('active');
+                                    });
 
-                                // Validasi tanggal
-                                const tanggalInput = document.getElementById('tanggal');
-                                if (!tanggalInput.value) {
-                                    tanggalInput.classList.add('is-invalid');
-                                    isValid = false;
-                                } else {
-                                    tanggalInput.classList.remove('is-invalid');
-                                }
+                                    this.classList.add('active');
+                                    document.getElementById('absensi_' + muridId).value = status;
+                                });
+                            });
 
-                                // Validasi status
-                                statusSelects.forEach(select => {
-                                    if (!select.value) {
-                                        select.classList.add('is-invalid');
-                                        isValid = false;
+                            // Validasi form sebelum submit
+                            document.querySelector('#formAbsensi').addEventListener('submit', function(e) {
+                                let allFilled = true;
+                                document.querySelectorAll('input[name^="absensi["]').forEach(input => {
+                                    if (!input.value) {
+                                        allFilled = false;
+                                        input.closest('tr').classList.add('table-danger'); // highlight baris kosong
                                     } else {
-                                        select.classList.remove('is-invalid');
+                                        input.closest('tr').classList.remove('table-danger');
                                     }
                                 });
 
-                                if (!isValid) {
+                                if (!allFilled) {
                                     e.preventDefault();
-                                    alert('Silakan lengkapi semua data yang wajib diisi!');
+                                    Swal.fire({
+                                        icon: 'warning',
+                                        title: 'Lengkapi Absensi!',
+                                        text: 'Harap isi status absensi untuk semua murid sebelum menyimpan.',
+                                        confirmButtonColor: '#3085d6',
+                                        confirmButtonText: 'OK'
+                                    });
                                 }
                             });
                         });
                     </script>
+
                 </section>
             </div>
         </div>
