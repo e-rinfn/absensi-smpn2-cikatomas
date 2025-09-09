@@ -16,7 +16,7 @@ $mapel = $stmt->fetchAll();
 // Proses filter laporan
 $kelas_id = $_GET['kelas_id'] ?? '';
 $mapel_id = $_GET['mapel_id'] ?? '';
-$bulan = $_GET['bulan'] ?? date('Y-m');
+$semester = $_GET['semester'] ?? ''; // Pindahkan deklarasi semester ke sini
 
 $where = [];
 $params = [];
@@ -32,10 +32,21 @@ if (!empty($mapel_id)) {
     $params[] = $mapel_id;
 }
 
-// Tambahkan filter bulan
-if (!empty($bulan)) {
-    $where[] = "DATE_FORMAT(a.tanggal, '%Y-%m') = ?";
-    $params[] = $bulan;
+// Hapus filter bulan
+// if (!empty($bulan)) {
+//     $where[] = "DATE_FORMAT(a.tanggal, '%Y-%m') = ?";
+//     $params[] = $bulan;
+// }
+
+// Filter semester
+if (!empty($semester)) {
+    if ($semester == '1') {
+        // Semester 1: Januari - Juni
+        $where[] = "MONTH(a.tanggal) BETWEEN 1 AND 6";
+    } elseif ($semester == '2') {
+        // Semester 2: Juli - Desember
+        $where[] = "MONTH(a.tanggal) BETWEEN 7 AND 12";
+    }
 }
 
 $where_clause = !empty($where) ? "WHERE " . implode(" AND ", $where) : "";
@@ -168,10 +179,21 @@ foreach ($rekap as $r) {
                                     </select>
                                 </div>
 
-                                <div class="col-md-3">
+                                <!-- Hapus input bulan -->
+                                <!-- <div class="col-md-3">
                                     <label for="bulan" class="form-label">Bulan</label>
                                     <input type="month" name="bulan" id="bulan" class="form-control" value="<?= $bulan ?>">
+                                </div> -->
+
+                                <div class="col-md-3">
+                                    <label for="semester" class="form-label">Semester</label>
+                                    <select name="semester" id="semester" class="form-select">
+                                        <option value="">Semua Semester</option>
+                                        <option value="1" <?= ($semester == '1') ? 'selected' : '' ?>>Semester 1 (Jan - Jun)</option>
+                                        <option value="2" <?= ($semester == '2') ? 'selected' : '' ?>>Semester 2 (Jul - Des)</option>
+                                    </select>
                                 </div>
+
 
                                 <div class="col-md-3 d-flex gap-2">
                                     <button type="submit" class="btn btn-primary w-100">
@@ -277,6 +299,7 @@ foreach ($rekap as $r) {
                     <script>
                         // Konversi data PHP ke JavaScript
                         const absensiDetail = <?= json_encode($absensi_per_tanggal) ?>;
+                        let currentKey = ''; // Untuk menyimpan key data yang sedang dilihat
 
                         document.querySelectorAll('.btn-detail').forEach(button => {
                             button.addEventListener('click', function() {
@@ -307,20 +330,21 @@ foreach ($rekap as $r) {
                                 if (absensiDetail[key]) {
                                     // Buat konten tabel
                                     let tableContent = `
-                                        <div class="table-responsive">
-                                            <table class="table table-sm table-bordered">
-                                                <thead class="table-light">
-                                                    <tr>
-                                                        <th>NIS</th>
-                                                        <th>Nama Murid</th>
-                                                        <th>Status</th>
-                                                        <th>Keterangan</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>`;
+                    <div class="table-responsive">
+                        <table class="table table-sm table-bordered">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>No</th>
+                                    <th>NIS</th>
+                                    <th>Nama Murid</th>
+                                    <th>Status</th>
+                                    <th>Keterangan</th>
+                                </tr>
+                            </thead>
+                            <tbody>`;
 
                                     // Tambahkan baris untuk setiap murid
-                                    absensiDetail[key].forEach(detail => {
+                                    absensiDetail[key].forEach((detail, index) => {
                                         let statusClass = '';
                                         switch (detail.status) {
                                             case 'hadir':
@@ -338,12 +362,13 @@ foreach ($rekap as $r) {
                                         }
 
                                         tableContent += `
-                                            <tr>
-                                                <td>${detail.nis}</td>
-                                                <td>${detail.nama_lengkap}</td>
-                                                <td class="${statusClass}">${detail.status.toUpperCase()}</td>
-                                                <td>${detail.keterangan || '-'}</td>
-                                            </tr>`;
+                        <tr>
+                            <td>${index + 1}</td>
+                            <td>${detail.nis}</td>
+                            <td>${detail.nama_lengkap}</td>
+                            <td class="${statusClass}">${detail.status.toUpperCase()}</td>
+                            <td>${detail.keterangan || '-'}</td>
+                        </tr>`;
                                     });
 
                                     tableContent += `</tbody></table></div>`;

@@ -1,16 +1,26 @@
 <?php
 require_once __DIR__ . '/../../../includes/auth.php';
-if (!isAdmin()) {
+if (!isGuru()) {
     header('Location: /sis-absensi-smp/login.php');
     exit;
 }
 
-// Ambil semua kelas (admin bisa melihat semua kelas)
-$stmt = $pdo->query("SELECT kelas_id, nama_kelas FROM kelas ORDER BY nama_kelas");
+// Ambil semua kelas yang diajar oleh guru ini
+$stmt = $pdo->prepare("SELECT DISTINCT k.kelas_id, k.nama_kelas 
+                      FROM jadwal_pelajaran j
+                      JOIN kelas k ON j.kelas_id = k.kelas_id
+                      WHERE j.guru_id = ?
+                      ORDER BY k.nama_kelas");
+$stmt->execute([$_SESSION['user_id']]);
 $kelas = $stmt->fetchAll();
 
-// Ambil semua mata pelajaran (admin bisa melihat semua mapel)
-$stmt = $pdo->query("SELECT mapel_id, nama_mapel FROM mata_pelajaran ORDER BY nama_mapel");
+// Ambil semua mata pelajaran yang diajar oleh guru ini
+$stmt = $pdo->prepare("SELECT DISTINCT m.mapel_id, m.nama_mapel 
+                      FROM jadwal_pelajaran j
+                      JOIN mata_pelajaran m ON j.mapel_id = m.mapel_id
+                      WHERE j.guru_id = ?
+                      ORDER BY m.nama_mapel");
+$stmt->execute([$_SESSION['user_id']]);
 $mapel = $stmt->fetchAll();
 
 // Proses filter laporan
@@ -19,9 +29,8 @@ $mapel_id = $_GET['mapel_id'] ?? '';
 $bulan = $_GET['bulan'] ?? date('Y-m');
 
 $where = [];
-$params = [];
+$params = [$_SESSION['user_id']];
 
-// Hanya tambahkan filter jika dipilih (admin bisa melihat semua)
 if (!empty($kelas_id)) {
     $where[] = "j.kelas_id = ?";
     $params[] = $kelas_id;
@@ -32,15 +41,9 @@ if (!empty($mapel_id)) {
     $params[] = $mapel_id;
 }
 
-// Tambahkan filter bulan
-if (!empty($bulan)) {
-    $where[] = "DATE_FORMAT(a.tanggal, '%Y-%m') = ?";
-    $params[] = $bulan;
-}
+$where_clause = !empty($where) ? "AND " . implode(" AND ", $where) : "";
 
-$where_clause = !empty($where) ? "WHERE " . implode(" AND ", $where) : "";
-
-// Query untuk rekap absensi (ringkasan) - admin melihat semua (HAPUS filter guru_id)
+// Query untuk rekap absensi (ringkasan)
 $query = "SELECT
         a.tanggal,
         m.nama_mapel,
@@ -56,15 +59,17 @@ $query = "SELECT
         JOIN jadwal_pelajaran j ON a.jadwal_id = j.jadwal_id
         JOIN mata_pelajaran m ON j.mapel_id = m.mapel_id
         JOIN kelas k ON j.kelas_id = k.kelas_id
+        WHERE j.guru_id = ?
+        AND DATE_FORMAT(a.tanggal, '%Y-%m') = ?
         $where_clause
         GROUP BY a.tanggal, m.nama_mapel, k.nama_kelas, j.jam_mulai, j.jam_selesai
         ORDER BY a.tanggal DESC, j.jam_mulai ASC";
 
 $stmt = $pdo->prepare($query);
-$stmt->execute($params);
+$stmt->execute(array_merge($params, [$bulan]));
 $rekap = $stmt->fetchAll();
 
-// Query untuk detail absensi per hari - admin melihat semua (HAPUS filter guru_id)
+// Query untuk detail absensi per hari - TAMBAHKAN j.jam_mulai dan j.jam_selesai
 $query_detail = "SELECT
                 a.tanggal,
                 m.nama_mapel,
@@ -80,17 +85,19 @@ $query_detail = "SELECT
                 JOIN mata_pelajaran m ON j.mapel_id = m.mapel_id
                 JOIN kelas k ON j.kelas_id = k.kelas_id
                 JOIN murid mu ON a.murid_id = mu.murid_id
+                WHERE j.guru_id = ?
+                AND DATE_FORMAT(a.tanggal, '%Y-%m') = ?
                 $where_clause
                 ORDER BY a.tanggal DESC, j.jam_mulai ASC, mu.nama_lengkap ASC";
 
 $stmt_detail = $pdo->prepare($query_detail);
-$stmt_detail->execute($params);
+$stmt_detail->execute(array_merge($params, [$bulan]));
 $detail_absensi = $stmt_detail->fetchAll();
 
 // Organisasi data detail per tanggal, mapel, kelas, dan JAM
 $absensi_per_tanggal = [];
 foreach ($detail_absensi as $detail) {
-    // Update key untuk menyertakan jam
+    // Tambahkan jam ke dalam key untuk memisahkan berdasarkan jam
     $key = $detail['tanggal'] . '_' . $detail['nama_mapel'] . '_' . $detail['nama_kelas'] . '_' . $detail['jam_mulai'] . '_' . $detail['jam_selesai'];
     if (!isset($absensi_per_tanggal[$key])) {
         $absensi_per_tanggal[$key] = [];
@@ -117,7 +124,7 @@ foreach ($rekap as $r) {
     <div id="app">
         <!-- Sidebar start -->
 
-        <?php include '../../../includes/navigation/admin.php'; ?>
+        <?php include '../../../includes/navigation/guru.php'; ?>
 
         <!-- Sidebar end -->
 
@@ -143,8 +150,7 @@ foreach ($rekap as $r) {
                         </div>
                         <div class="card-body">
                             <form method="GET" class="row g-2 align-items-end">
-                                <!-- Hapus hidden dari filter kelas dan mapel -->
-                                <div class="col-md-3">
+                                <div class="col-md-3" hidden>
                                     <label for="kelas_id" class="form-label">Kelas</label>
                                     <select name="kelas_id" id="kelas_id" class="form-select">
                                         <option value="">Semua Kelas</option>
@@ -156,7 +162,7 @@ foreach ($rekap as $r) {
                                     </select>
                                 </div>
 
-                                <div class="col-md-3">
+                                <div class="col-md-3" hidden>
                                     <label for="mapel_id" class="form-label">Mata Pelajaran</label>
                                     <select name="mapel_id" id="mapel_id" class="form-select">
                                         <option value="">Semua Mapel</option>
@@ -259,15 +265,6 @@ foreach ($rekap as $r) {
                                     <!-- Konten akan diisi oleh JavaScript -->
                                 </div>
                                 <div class="modal-footer">
-                                    <!-- Tombol untuk cetak PDF dan export Excel -->
-                                    <div class="me-auto">
-                                        <button type="button" class="btn btn-success btn-sm" id="btnExportExcel">
-                                            <i class="fas fa-file-excel me-1"></i> Export Excel
-                                        </button>
-                                        <button type="button" class="btn btn-danger btn-sm" id="btnCetakPDF">
-                                            <i class="fas fa-file-pdf me-1"></i> Cetak PDF
-                                        </button>
-                                    </div>
                                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
                                 </div>
                             </div>
@@ -285,18 +282,6 @@ foreach ($rekap as $r) {
                                 const mapel = this.getAttribute('data-mapel');
                                 const kelas = this.getAttribute('data-kelas');
                                 const jam = this.getAttribute('data-jam');
-
-                                // Simpan data untuk digunakan oleh fungsi export
-                                currentKey = key;
-                                document.getElementById('btnExportExcel').setAttribute('data-tanggal', tanggal);
-                                document.getElementById('btnExportExcel').setAttribute('data-mapel', mapel);
-                                document.getElementById('btnExportExcel').setAttribute('data-kelas', kelas);
-                                document.getElementById('btnExportExcel').setAttribute('data-jam', jam);
-
-                                document.getElementById('btnCetakPDF').setAttribute('data-tanggal', tanggal);
-                                document.getElementById('btnCetakPDF').setAttribute('data-mapel', mapel);
-                                document.getElementById('btnCetakPDF').setAttribute('data-kelas', kelas);
-                                document.getElementById('btnCetakPDF').setAttribute('data-jam', jam);
 
                                 const modalTitle = document.getElementById('modalTitle');
                                 const modalBody = document.getElementById('modalBody');
@@ -355,48 +340,6 @@ foreach ($rekap as $r) {
                                 }
                             });
                         });
-
-                        // Fungsi untuk export Excel
-                        document.getElementById('btnExportExcel').addEventListener('click', function() {
-                            const tanggal = this.getAttribute('data-tanggal');
-                            const mapel = this.getAttribute('data-mapel');
-                            const kelas = this.getAttribute('data-kelas');
-                            const jam = this.getAttribute('data-jam');
-
-                            if (currentKey && absensiDetail[currentKey]) {
-                                // Redirect ke halaman export Excel dengan parameter yang diperlukan
-                                const params = new URLSearchParams({
-                                    tanggal: tanggal,
-                                    mapel: encodeURIComponent(mapel),
-                                    kelas: encodeURIComponent(kelas),
-                                    jam: encodeURIComponent(jam),
-                                    data: JSON.stringify(absensiDetail[currentKey])
-                                });
-
-                                window.location.href = 'export_excel.php?' + params.toString();
-                            }
-                        });
-
-                        // Fungsi untuk cetak PDF
-                        document.getElementById('btnCetakPDF').addEventListener('click', function() {
-                            const tanggal = this.getAttribute('data-tanggal');
-                            const mapel = this.getAttribute('data-mapel');
-                            const kelas = this.getAttribute('data-kelas');
-                            const jam = this.getAttribute('data-jam');
-
-                            if (currentKey && absensiDetail[currentKey]) {
-                                // Redirect ke halaman cetak PDF dengan parameter yang diperlukan
-                                const params = new URLSearchParams({
-                                    tanggal: tanggal,
-                                    mapel: encodeURIComponent(mapel),
-                                    kelas: encodeURIComponent(kelas),
-                                    jam: encodeURIComponent(jam),
-                                    data: JSON.stringify(absensiDetail[currentKey])
-                                });
-
-                                window.open('cetak_pdf.php?' + params.toString(), '_blank');
-                            }
-                        });
                     </script>
 
                     <!-- Main content end -->
@@ -406,7 +349,6 @@ foreach ($rekap as $r) {
 
         <!-- Main end -->
     </div>
-
 
     <!-- Javascript template mazer start -->
     <script src="<?= $base_url ?>/assets/vendors/perfect-scrollbar/perfect-scrollbar.min.js"></script>

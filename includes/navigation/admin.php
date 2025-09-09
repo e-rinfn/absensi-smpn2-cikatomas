@@ -99,6 +99,13 @@ $current_date = date('d F Y'); // Format tanggal: 01 January 2023
                     </a>
                 </li>
 
+                <li class="sidebar-item <?= isActive('/admin/semester') ?>">
+                    <a href="<?= $base_url ?>modules/admin/semester/index.php" class="sidebar-link d-flex align-items-center">
+                        <i class="bi bi-file-bar-graph-fill me-2"></i>
+                        <span>Laporan Semester</span>
+                    </a>
+                </li>
+
                 <li class="sidebar-item <?= isActive('/admin/profil') ?>">
                     <a href="<?= $base_url ?>modules/admin/profil/index.php" class="sidebar-link d-flex align-items-center">
                         <i class="bi bi-person-fill me-2"></i>
