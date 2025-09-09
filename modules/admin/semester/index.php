@@ -278,7 +278,29 @@ foreach ($rekap as $r) {
                                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                 </div>
                                 <div class="modal-body" id="modalBody">
-                                    <!-- Konten akan diisi oleh JavaScript -->
+                                    <!-- Filter status akan ditambahkan di sini -->
+                                    <div class="row mb-3">
+                                        <div class="col-md-6">
+                                            <div class="input-group">
+                                                <input type="text" class="form-control" id="searchStudent" placeholder="Cari nama atau NIS...">
+                                                <button class="btn btn-outline-secondary" type="button" id="clearSearch">
+                                                    <i class="bi bi-clock-history"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <select class="form-select" id="statusFilter">
+                                                <option value="all">Semua Status</option>
+                                                <option value="hadir">Hadir</option>
+                                                <option value="sakit">Sakit</option>
+                                                <option value="izin">Izin</option>
+                                                <option value="alpha">Alpha</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <!-- Konten tabel akan diisi oleh JavaScript -->
+                                    <div id="tableContainer"></div>
                                 </div>
                                 <div class="modal-footer">
                                     <!-- Tombol untuk cetak PDF dan export Excel -->
@@ -300,6 +322,7 @@ foreach ($rekap as $r) {
                         // Konversi data PHP ke JavaScript
                         const absensiDetail = <?= json_encode($absensi_per_tanggal) ?>;
                         let currentKey = ''; // Untuk menyimpan key data yang sedang dilihat
+                        let currentData = []; // Untuk menyimpan data yang sedang ditampilkan
 
                         document.querySelectorAll('.btn-detail').forEach(button => {
                             button.addEventListener('click', function() {
@@ -322,63 +345,118 @@ foreach ($rekap as $r) {
                                 document.getElementById('btnCetakPDF').setAttribute('data-jam', jam);
 
                                 const modalTitle = document.getElementById('modalTitle');
-                                const modalBody = document.getElementById('modalBody');
+                                const tableContainer = document.getElementById('tableContainer');
 
                                 // Set judul modal dengan informasi jam
                                 modalTitle.textContent = `Detail Absensi - ${mapel} - ${kelas} - ${tanggal} (${jam})`;
 
                                 if (absensiDetail[key]) {
-                                    // Buat konten tabel
-                                    let tableContent = `
-                    <div class="table-responsive">
-                        <table class="table table-sm table-bordered">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>No</th>
-                                    <th>NIS</th>
-                                    <th>Nama Murid</th>
-                                    <th>Status</th>
-                                    <th>Keterangan</th>
-                                </tr>
-                            </thead>
-                            <tbody>`;
+                                    // Simpan data untuk filtering
+                                    currentData = absensiDetail[key];
 
-                                    // Tambahkan baris untuk setiap murid
-                                    absensiDetail[key].forEach((detail, index) => {
-                                        let statusClass = '';
-                                        switch (detail.status) {
-                                            case 'hadir':
-                                                statusClass = 'text-success fw-bold';
-                                                break;
-                                            case 'sakit':
-                                                statusClass = 'text-warning fw-bold';
-                                                break;
-                                            case 'izin':
-                                                statusClass = 'text-info fw-bold';
-                                                break;
-                                            case 'alpha':
-                                                statusClass = 'text-danger fw-bold';
-                                                break;
-                                        }
+                                    // Render tabel dengan data lengkap
+                                    renderTable(currentData);
 
-                                        tableContent += `
-                        <tr>
-                            <td>${index + 1}</td>
-                            <td>${detail.nis}</td>
-                            <td>${detail.nama_lengkap}</td>
-                            <td class="${statusClass}">${detail.status.toUpperCase()}</td>
-                            <td>${detail.keterangan || '-'}</td>
-                        </tr>`;
-                                    });
-
-                                    tableContent += `</tbody></table></div>`;
-                                    modalBody.innerHTML = tableContent;
+                                    // Reset filter
+                                    document.getElementById('searchStudent').value = '';
+                                    document.getElementById('statusFilter').value = 'all';
 
                                     // Tampilkan modal
                                     const modal = new bootstrap.Modal(document.getElementById('detailModal'));
                                     modal.show();
                                 }
                             });
+                        });
+
+                        // Fungsi untuk merender tabel berdasarkan data
+                        function renderTable(data) {
+                            if (data.length === 0) {
+                                document.getElementById('tableContainer').innerHTML = `
+                <div class="alert alert-info text-center">
+                    Tidak ada data yang sesuai dengan filter.
+                </div>
+            `;
+                                return;
+                            }
+
+                            let tableContent = `
+            <div class="table-responsive">
+                <table class="table table-sm table-bordered">
+                    <thead class="table-light">
+                        <tr>
+                            <th>No</th>
+                            <th>NIS</th>
+                            <th>Nama Murid</th>
+                            <th>Status</th>
+                            <th>Keterangan</th>
+                        </tr>
+                    </thead>
+                    <tbody>`;
+
+                            // Tambahkan baris untuk setiap murid
+                            data.forEach((detail, index) => {
+                                let statusClass = '';
+                                switch (detail.status) {
+                                    case 'hadir':
+                                        statusClass = 'text-success fw-bold';
+                                        break;
+                                    case 'sakit':
+                                        statusClass = 'text-warning fw-bold';
+                                        break;
+                                    case 'izin':
+                                        statusClass = 'text-info fw-bold';
+                                        break;
+                                    case 'alpha':
+                                        statusClass = 'text-danger fw-bold';
+                                        break;
+                                }
+
+                                tableContent += `
+                <tr>
+                    <td>${index + 1}</td>
+                    <td>${detail.nis}</td>
+                    <td>${detail.nama_lengkap}</td>
+                    <td class="${statusClass}">${detail.status.toUpperCase()}</td>
+                    <td>${detail.keterangan || '-'}</td>
+                </tr>`;
+                            });
+
+                            tableContent += `</tbody></table></div>`;
+                            document.getElementById('tableContainer').innerHTML = tableContent;
+                        }
+
+                        // Fungsi untuk memfilter data
+                        function filterData() {
+                            const searchText = document.getElementById('searchStudent').value.toLowerCase();
+                            const statusFilter = document.getElementById('statusFilter').value;
+
+                            let filteredData = [...currentData];
+
+                            // Filter berdasarkan pencarian teks
+                            if (searchText) {
+                                filteredData = filteredData.filter(item =>
+                                    item.nama_lengkap.toLowerCase().includes(searchText) ||
+                                    item.nis.toLowerCase().includes(searchText)
+                                );
+                            }
+
+                            // Filter berdasarkan status
+                            if (statusFilter !== 'all') {
+                                filteredData = filteredData.filter(item => item.status === statusFilter);
+                            }
+
+                            // Render tabel dengan data yang sudah difilter
+                            renderTable(filteredData);
+                        }
+
+                        // Event listener untuk filter
+                        document.getElementById('searchStudent').addEventListener('input', filterData);
+                        document.getElementById('statusFilter').addEventListener('change', filterData);
+
+                        // Event listener untuk clear search
+                        document.getElementById('clearSearch').addEventListener('click', function() {
+                            document.getElementById('searchStudent').value = '';
+                            filterData();
                         });
 
                         // Fungsi untuk export Excel
@@ -399,7 +477,6 @@ foreach ($rekap as $r) {
                         });
 
                         // Fungsi untuk cetak PDF
-                        // Cetak PDF (tanpa kirim JSON)
                         document.getElementById('btnCetakPDF').addEventListener('click', function() {
                             const tanggal = this.getAttribute('data-tanggal');
                             const mapel = this.getAttribute('data-mapel');
