@@ -369,18 +369,14 @@ foreach ($rekap as $r) {
                             const kelas = this.getAttribute('data-kelas');
                             const jam = this.getAttribute('data-jam');
 
-                            if (currentKey && absensiDetail[currentKey]) {
-                                // Redirect ke halaman export Excel dengan parameter yang diperlukan
-                                const params = new URLSearchParams({
-                                    tanggal: tanggal,
-                                    mapel: encodeURIComponent(mapel),
-                                    kelas: encodeURIComponent(kelas),
-                                    jam: encodeURIComponent(jam),
-                                    data: JSON.stringify(absensiDetail[currentKey])
-                                });
+                            const params = new URLSearchParams({
+                                tanggal: tanggal,
+                                mapel: mapel,
+                                kelas: kelas,
+                                jam: jam
+                            });
 
-                                window.location.href = 'export_excel.php?' + params.toString();
-                            }
+                            window.open('export_excel.php?' + params.toString(), '_blank');
                         });
 
                         // Fungsi untuk cetak PDF
