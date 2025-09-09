@@ -7,10 +7,27 @@ if (!isAdmin()) {
 
 // Ambil parameter dari URL
 $tanggal = $_GET['tanggal'] ?? '';
-$mapel = urldecode($_GET['mapel'] ?? '');
-$kelas = urldecode($_GET['kelas'] ?? '');
-$jam = urldecode($_GET['jam'] ?? '');
-$data = json_decode(urldecode($_GET['data'] ?? '[]'), true);
+$mapel   = $_GET['mapel'] ?? '';
+$kelas   = $_GET['kelas'] ?? '';
+$jam     = $_GET['jam'] ?? '';
+
+// Pecah jam jadi jam_mulai & jam_selesai
+list($jam_mulai, $jam_selesai) = array_map('trim', explode('-', $jam));
+
+// Query ulang data detail absensi
+$sql = "SELECT mu.nis, mu.nama_lengkap, a.status, a.keterangan
+        FROM absensi a
+        JOIN jadwal_pelajaran j ON a.jadwal_id = j.jadwal_id
+        JOIN mata_pelajaran m ON j.mapel_id = m.mapel_id
+        JOIN kelas k ON j.kelas_id = k.kelas_id
+        JOIN murid mu ON a.murid_id = mu.murid_id
+        WHERE a.tanggal = ? AND m.nama_mapel = ? 
+              AND k.nama_kelas = ? 
+              AND j.jam_mulai = ? AND j.jam_selesai = ?
+        ORDER BY mu.nama_lengkap ASC";
+$stmt = $pdo->prepare($sql);
+$stmt->execute([$tanggal, $mapel, $kelas, $jam_mulai, $jam_selesai]);
+$data = $stmt->fetchAll();
 
 // Header untuk download file Excel
 header('Content-Type: application/vnd.ms-excel');
