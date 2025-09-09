@@ -77,10 +77,10 @@ class ABSENSI_PDF extends TCPDF
         $this->Cell(0, 5, 'PEMERINTAH KOTA TASIKMALAYA', 0, 1, 'L');
         $this->Cell(0, 5, 'DINAS PENDIDIKAN', 0, 1, 'C');
         $this->SetFont('times', 'B', 14);
-        $this->Cell(0, 6, 'SMP TERPADU BUGELAN', 0, 1, 'C');
+        $this->Cell(0, 6, 'SMP NEGERI 2 CIKATOMAS', 0, 1, 'C');
         $this->SetFont('times', '', 10);
-        $this->Cell(0, 5, 'Jl. Raya Bugelan No. 123, Kota Tasikmalaya, Jawa Barat', 0, 1, 'C');
-        $this->Cell(0, 5, 'Telp. (0265) 7654321 | Email: smpterpadubugelan@example.com', 0, 1, 'C');
+        $this->Cell(0, 5, 'Jl. Raya Cikatomas No. 123, Kota Tasikmalaya, Jawa Barat', 0, 1, 'C');
+        $this->Cell(0, 5, 'Telp. (0265) 7654321 | Email: smpnegeri2cikatomas@example.com', 0, 1, 'C');
         $this->Line(10, 42, 200, 42);
         $this->Ln(5);
     }
