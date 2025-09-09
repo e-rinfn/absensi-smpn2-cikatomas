@@ -403,24 +403,21 @@ foreach ($rekap as $r) {
                         });
 
                         // Fungsi untuk cetak PDF
+                        // Cetak PDF (tanpa kirim JSON)
                         document.getElementById('btnCetakPDF').addEventListener('click', function() {
                             const tanggal = this.getAttribute('data-tanggal');
                             const mapel = this.getAttribute('data-mapel');
                             const kelas = this.getAttribute('data-kelas');
                             const jam = this.getAttribute('data-jam');
 
-                            if (currentKey && absensiDetail[currentKey]) {
-                                // Redirect ke halaman cetak PDF dengan parameter yang diperlukan
-                                const params = new URLSearchParams({
-                                    tanggal: tanggal,
-                                    mapel: encodeURIComponent(mapel),
-                                    kelas: encodeURIComponent(kelas),
-                                    jam: encodeURIComponent(jam),
-                                    data: JSON.stringify(absensiDetail[currentKey])
-                                });
+                            const params = new URLSearchParams({
+                                tanggal: tanggal,
+                                mapel: mapel,
+                                kelas: kelas,
+                                jam: jam
+                            });
 
-                                window.open('cetak_pdf.php?' + params.toString(), '_blank');
-                            }
+                            window.open('cetak_pdf.php?' + params.toString(), '_blank');
                         });
                     </script>
 
