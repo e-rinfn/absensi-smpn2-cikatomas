@@ -265,6 +265,15 @@ foreach ($rekap as $r) {
                                     <!-- Konten akan diisi oleh JavaScript -->
                                 </div>
                                 <div class="modal-footer">
+                                    <!-- Tombol untuk cetak PDF dan export Excel -->
+                                    <div class="me-auto">
+                                        <button type="button" class="btn btn-success btn-sm" id="btnExportExcel">
+                                            <i class="fas fa-file-excel me-1"></i> Export Excel
+                                        </button>
+                                        <button type="button" class="btn btn-danger btn-sm" id="btnCetakPDF">
+                                            <i class="fas fa-file-pdf me-1"></i> Cetak PDF
+                                        </button>
+                                    </div>
                                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
                                 </div>
                             </div>
@@ -285,6 +294,18 @@ foreach ($rekap as $r) {
 
                                 const modalTitle = document.getElementById('modalTitle');
                                 const modalBody = document.getElementById('modalBody');
+
+                                // Simpan data untuk digunakan oleh fungsi export
+                                currentKey = key;
+                                document.getElementById('btnExportExcel').setAttribute('data-tanggal', tanggal);
+                                document.getElementById('btnExportExcel').setAttribute('data-mapel', mapel);
+                                document.getElementById('btnExportExcel').setAttribute('data-kelas', kelas);
+                                document.getElementById('btnExportExcel').setAttribute('data-jam', jam);
+
+                                document.getElementById('btnCetakPDF').setAttribute('data-tanggal', tanggal);
+                                document.getElementById('btnCetakPDF').setAttribute('data-mapel', mapel);
+                                document.getElementById('btnCetakPDF').setAttribute('data-kelas', kelas);
+                                document.getElementById('btnCetakPDF').setAttribute('data-jam', jam);
 
                                 // Set judul modal dengan informasi jam
                                 modalTitle.textContent = `Detail Absensi - ${mapel} - ${kelas} - ${tanggal} (${jam})`;
@@ -339,6 +360,45 @@ foreach ($rekap as $r) {
                                     modal.show();
                                 }
                             });
+                        });
+
+                        // Fungsi untuk export Excel
+                        document.getElementById('btnExportExcel').addEventListener('click', function() {
+                            const tanggal = this.getAttribute('data-tanggal');
+                            const mapel = this.getAttribute('data-mapel');
+                            const kelas = this.getAttribute('data-kelas');
+                            const jam = this.getAttribute('data-jam');
+
+                            if (currentKey && absensiDetail[currentKey]) {
+                                // Redirect ke halaman export Excel dengan parameter yang diperlukan
+                                const params = new URLSearchParams({
+                                    tanggal: tanggal,
+                                    mapel: encodeURIComponent(mapel),
+                                    kelas: encodeURIComponent(kelas),
+                                    jam: encodeURIComponent(jam),
+                                    data: JSON.stringify(absensiDetail[currentKey])
+                                });
+
+                                window.location.href = 'export_excel.php?' + params.toString();
+                            }
+                        });
+
+                        // Fungsi untuk cetak PDF
+                        // Cetak PDF (tanpa kirim JSON)
+                        document.getElementById('btnCetakPDF').addEventListener('click', function() {
+                            const tanggal = this.getAttribute('data-tanggal');
+                            const mapel = this.getAttribute('data-mapel');
+                            const kelas = this.getAttribute('data-kelas');
+                            const jam = this.getAttribute('data-jam');
+
+                            const params = new URLSearchParams({
+                                tanggal: tanggal,
+                                mapel: mapel,
+                                kelas: kelas,
+                                jam: jam
+                            });
+
+                            window.open('cetak_pdf.php?' + params.toString(), '_blank');
                         });
                     </script>
 
