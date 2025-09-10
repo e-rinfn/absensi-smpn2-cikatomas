@@ -372,58 +372,81 @@ foreach ($rekap as $r) {
                         function renderTable(data) {
                             if (data.length === 0) {
                                 document.getElementById('tableContainer').innerHTML = `
-                <div class="alert alert-info text-center">
-                    Tidak ada data yang sesuai dengan filter.
-                </div>
-            `;
+            <div class="alert alert-info text-center">
+                Tidak ada data absensi.
+            </div>
+        `;
                                 return;
                             }
 
-                            let tableContent = `
-            <div class="table-responsive">
-                <table class="table table-sm table-bordered">
-                    <thead class="table-light">
-                        <tr>
-                            <th>No</th>
-                            <th>NIS</th>
-                            <th>Nama Murid</th>
-                            <th>Status</th>
-                            <th>Keterangan</th>
-                        </tr>
-                    </thead>
-                    <tbody>`;
+                            // Hitung jumlah status
+                            let countHadir = 0,
+                                countSakit = 0,
+                                countIzin = 0,
+                                countAlpha = 0;
 
-                            // Tambahkan baris untuk setiap murid
+                            let tableContent = `
+        <div class="table-responsive">
+            <table class="table table-sm table-bordered">
+                <thead class="table-light">
+                    <tr>
+                        <th>No</th>
+                        <th>NIS</th>
+                        <th>Nama Murid</th>
+                        <th>Status</th>
+                        <th>Keterangan</th>
+                    </tr>
+                </thead>
+                <tbody>`;
+
+                            // Tambahkan baris untuk setiap murid dengan nomor urut
                             data.forEach((detail, index) => {
                                 let statusClass = '';
                                 switch (detail.status) {
                                     case 'hadir':
                                         statusClass = 'text-success fw-bold';
+                                        countHadir++;
                                         break;
                                     case 'sakit':
                                         statusClass = 'text-warning fw-bold';
+                                        countSakit++;
                                         break;
                                     case 'izin':
                                         statusClass = 'text-info fw-bold';
+                                        countIzin++;
                                         break;
                                     case 'alpha':
                                         statusClass = 'text-danger fw-bold';
+                                        countAlpha++;
                                         break;
                                 }
 
                                 tableContent += `
-                <tr>
-                    <td>${index + 1}</td>
-                    <td>${detail.nis}</td>
-                    <td>${detail.nama_lengkap}</td>
-                    <td class="${statusClass}">${detail.status.toUpperCase()}</td>
-                    <td>${detail.keterangan || '-'}</td>
-                </tr>`;
+            <tr>
+                <td>${index + 1}</td>
+                <td>${detail.nis}</td>
+                <td>${detail.nama_lengkap}</td>
+                <td class="${statusClass}">${detail.status.toUpperCase()}</td>
+                <td>${detail.keterangan || '-'}</td>
+            </tr>`;
                             });
 
-                            tableContent += `</tbody></table></div>`;
+                            tableContent += `
+                </tbody>
+            </table>
+        </div>
+        <div class="mt-2">
+            <strong>Ringkasan:</strong> 
+            Hadir: <span class="text-success">${countHadir}</span>, 
+            Sakit: <span class="text-warning">${countSakit}</span>, 
+            Izin: <span class="text-info">${countIzin}</span>, 
+            Alpha: <span class="text-danger">${countAlpha}</span>
+        </div>
+    `;
+
                             document.getElementById('tableContainer').innerHTML = tableContent;
                         }
+
 
                         // Fungsi untuk memfilter data
                         function filterData() {
